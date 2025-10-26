@@ -5,23 +5,29 @@ import { useEffect, useState } from "react";
 
 export default function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, systemTheme } = useTheme();
 
+  // Only run on client-side to prevent hydration mismatch
   useEffect(() => {
-    setMounted(true);
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
   }, []);
 
   if (!mounted) {
-    return null;
+    return (
+      <div className="fixed right-6 top-6 z-50 h-12 w-12 rounded-full bg-neutral-200 dark:bg-neutral-800" />
+    );
   }
+
+  const currentTheme = theme === "system" ? systemTheme : theme;
 
   return (
     <button
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      onClick={() => setTheme(currentTheme === "dark" ? "light" : "dark")}
       className="fixed right-6 top-6 z-50 rounded-full bg-neutral-900 p-3 text-neutral-100 shadow-lg transition-all hover:scale-110 hover:shadow-xl dark:bg-neutral-100 dark:text-neutral-900"
       aria-label="Toggle theme"
     >
-      {theme === "dark" ? (
+      {currentTheme === "dark" ? (
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
