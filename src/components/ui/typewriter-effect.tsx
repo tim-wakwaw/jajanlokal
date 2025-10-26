@@ -32,7 +32,7 @@ export const TypewriterEffect = ({
         { duration: 0.3, delay: stagger(0.1), ease: "easeInOut" }
       );
     }
-  }, [isInView]);
+  }, [isInView, animate]);
 
   const renderWords = () => (
     <motion.div ref={scope} className="inline">
