@@ -43,8 +43,9 @@ export default function RootLayout({
                 <NavbarLogo />
                 <NavItems
                   items={[
-                    { name: "Home", link: "/" },
+                    { name: "Beranda", link: "/" },
                     { name: "UMKM", link: "/umkm" },
+                    { name: "Peta UMKM", link: "/peta-umkm" },
                     { name: "Tentang", link: "/tentang" },
                   ]}
                 />
