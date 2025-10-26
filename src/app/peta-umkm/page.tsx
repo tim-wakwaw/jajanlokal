@@ -1,4 +1,3 @@
-// src/app/peta-umkm/page.tsx
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -53,11 +52,14 @@ export default function PetaUMKMPage() {
 
       LRef.current = L;
 
+      const iconUrl = (markerIcon as unknown as { src: string }).src || (markerIcon as unknown as string);
+      const iconRetinaUrl = (markerIcon2x as unknown as { src: string }).src || (markerIcon2x as unknown as string);
+      const shadowUrl = (markerShadow as unknown as { src: string }).src || (markerShadow as unknown as string);
 
       iconRef.current = L.icon({
-        iconUrl: markerIcon as string,
-        iconRetinaUrl: markerIcon2x as string,
-        shadowUrl: markerShadow as string,
+        iconUrl,
+        iconRetinaUrl,
+        shadowUrl,
         iconSize: [25, 41],
         iconAnchor: [12, 41],
         popupAnchor: [1, -34],
@@ -67,9 +69,7 @@ export default function PetaUMKMPage() {
       setMapReady(true);
     };
 
-    if (typeof window !== "undefined") {
-      setupLeaflet();
-    }
+    if (typeof window !== "undefined") setupLeaflet();
   }, []);
 
   const position: LatLngExpression = [-6.2088, 106.8456];
