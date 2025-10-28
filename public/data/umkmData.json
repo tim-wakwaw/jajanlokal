@@ -1,0 +1,192 @@
+[
+  {
+    "id": 1,
+    "name": "Chicken Troops",
+    "alamat": "Jl. Watu Gong No.12, Ketawanggede, Kec. Lowokwaru, Kota Malang, Jawa Timur 65145",
+    "category": "Kuliner",
+    "lat": -7.94782795426809,
+    "lng": 112.6120308218705,
+    "description": "Chicken Troops menawarkan ayam goreng crispy dengan bumbu khas dan saus pedas manis yang populer di kalangan mahasiswa.",
+    "rating": 4.7,
+    "comments": [
+      { "user": "Dina", "text": "Ayamnya renyah dan porsinya pas!" },
+      { "user": "Andi", "text": "Harga terjangkau, cocok buat anak kos." }
+    ],
+    "products": [
+      { "name": "Ayam Crispy Original", "price": 15000 },
+      { "name": "Ayam Saus Pedas Manis", "price": 18000 },
+      { "name": "Paket Nasi Ayam", "price": 22000 }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Geprek Bakar & Kremes 2 Saudara",
+    "alamat": "Jl. Watu Gong No.17, Ketawanggede, Kec. Lowokwaru, Kota Malang, Jawa Timur 65145",
+    "category": "Kuliner",
+    "lat": -7.948647415945939,
+    "lng": 112.611734550374,
+    "description": "Spesialis ayam geprek bakar dan kremes dengan sambal khas buatan sendiri.",
+    "rating": 4.6,
+    "comments": [
+      { "user": "Bagas", "text": "Gepreknya mantap, sambalnya nampol!" },
+      { "user": "Nina", "text": "Tempatnya sederhana tapi enak banget." }
+    ],
+    "products": [
+      { "name": "Ayam Geprek Kremes", "price": 16000 },
+      { "name": "Ayam Geprek Bakar", "price": 18000 },
+      { "name": "Tempe Geprek", "price": 10000 }
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Pecel Pincuk Bu Sinten",
+    "alamat": "Jl. Watu Gong No.2a, Ketawanggede, Kec. Lowokwaru, Kota Malang, Jawa Timur 65145",
+    "category": "Kuliner",
+    "lat": -7.947276563711163,
+    "lng": 112.61276734432435,
+    "description": "Warung legendaris yang menyajikan pecel pincuk daun pisang dengan sambal kacang khas Jawa Timur.",
+    "rating": 4.8,
+    "comments": [
+      { "user": "Rizky", "text": "Bumbu kacangnya kental dan gurih!" },
+      { "user": "Laras", "text": "Tempat makan nostalgia, rasanya otentik." }
+    ],
+    "products": [
+      { "name": "Pecel Pincuk Komplit", "price": 13000 },
+      { "name": "Lontong Pecel", "price": 11000 },
+      { "name": "Rempeyek", "price": 3000 }
+    ]
+  },
+  {
+    "id": 4,
+    "name": "C.L.O.T.H.E.S.S Up Date",
+    "alamat": "Jl. Mayjend Panjaitan No.225C, Penanggungan, Kec. Klojen, Kota Malang, Jawa Timur 65113",
+    "category": "Fashion",
+    "lat": -7.951722955554669,
+    "lng": 112.61780201475551,
+    "description": "Butik pakaian kekinian untuk anak muda dengan gaya streetwear dan casual.",
+    "rating": 4.4,
+    "comments": [
+      { "user": "Salsa", "text": "Bajunya bagus, bahan adem." },
+      { "user": "Reza", "text": "Harga bersahabat, banyak pilihan model." }
+    ],
+    "products": [
+      { "name": "Kaos Oversize", "price": 95000 },
+      { "name": "Jaket Hoodie", "price": 150000 },
+      { "name": "Celana Cargo", "price": 130000 }
+    ]
+  },
+  {
+    "id": 5,
+    "name": "Outfitpartner Ladies Store",
+    "alamat": "Jl. Mayjend Panjaitan No.205, Penanggungan, Kec. Klojen, Kota Malang, Jawa Timur 65113",
+    "category": "Fashion",
+    "lat": -7.952497553766581,
+    "lng": 112.61922033753018,
+    "description": "Toko pakaian wanita dengan koleksi dress dan blouse trendi untuk segala acara.",
+    "rating": 4.5,
+    "comments": [
+      { "user": "Vina", "text": "Banyak promo menarik, pelayanan ramah." },
+      { "user": "Yuni", "text": "Cocok buat fashion formal maupun casual." }
+    ],
+    "products": [
+      { "name": "Blouse Floral", "price": 80000 },
+      { "name": "Midi Dress Polos", "price": 120000 },
+      { "name": "Cardigan Rajut", "price": 90000 }
+    ]
+  },
+  {
+    "id": 6,
+    "name": "Karisijii.id",
+    "alamat": "Jl. Raya Sumbersari No.285, Sumbersari, Kec. Lowokwaru, Kota Malang, Jawa Timur 65145",
+    "category": "Fashion",
+    "lat": -7.954693143532081,
+    "lng": 112.61139116364791,
+    "description": "Brand lokal yang menjual kaos dan totebag dengan desain ilustrasi unik khas Malang.",
+    "rating": 4.9,
+    "comments": [
+      { "user": "Bima", "text": "Desainnya keren dan khas banget!" },
+      { "user": "Ayu", "text": "Suka banget sama totebagnya." }
+    ],
+    "products": [
+      { "name": "Kaos Ilustrasi Arema", "price": 100000 },
+      { "name": "Totebag Karisijii", "price": 60000 },
+      { "name": "Topi Trucker Logo", "price": 55000 }
+    ]
+  },
+  {
+    "id": 7,
+    "name": "Toko Rahma",
+    "alamat": "Jl. Kerto Pamuji No.49, Ketawanggede, Kec. Lowokwaru, Kota Malang, Jawa Timur 65145",
+    "category": "Retail",
+    "lat": -7.9489505609962325,
+    "lng": 112.61051371700569,
+    "description": "Toko kebutuhan sehari-hari dengan berbagai produk rumah tangga dan snack.",
+    "rating": 4.3,
+    "comments": [
+      { "user": "Teguh", "text": "Lengkap banget, harga bersahabat." },
+      { "user": "Mila", "text": "Dekat kampus dan buka sampai malam." }
+    ],
+    "products": [
+      { "name": "Air Mineral 600ml", "price": 4000 },
+      { "name": "Snack Ring", "price": 6000 },
+      { "name": "Sabun Cuci", "price": 12000 }
+    ]
+  },
+  {
+    "id": 8,
+    "name": "Apotek K-24 Gajayana Malang",
+    "alamat": "Jl. Raya Sumbersari No.Kav. 4, Ketawanggede, Kec. Lowokwaru, Kota Malang, Jawa Timur 65145",
+    "category": "Kesehatan",
+    "lat": -7.951082346507875,
+    "lng": 112.6112730883257,
+    "description": "Apotek 24 jam yang menyediakan obat generik dan resep dokter dengan pelayanan cepat.",
+    "rating": 4.8,
+    "comments": [
+      { "user": "Rafi", "text": "Pelayanan cepat dan lengkap." },
+      { "user": "Nadia", "text": "Petugas ramah, lokasi strategis." }
+    ],
+    "products": [
+      { "name": "Paracetamol 500mg", "price": 5000 },
+      { "name": "Vitamin C 1000mg", "price": 8000 },
+      { "name": "Obat Batuk Cair", "price": 15000 }
+    ]
+  },
+  {
+    "id": 9,
+    "name": "Peony Florist",
+    "alamat": "Jl. Raya Sumbersari No.290, Ketawanggede, Kec. Lowokwaru, Kota Malang, Jawa Timur 65145",
+    "category": "Kerajinan",
+    "lat": -7.955447339384014,
+    "lng": 112.61238840938674,
+    "description": "Florist lokal yang menyediakan bunga segar dan rangkaian untuk berbagai acara.",
+    "rating": 4.9,
+    "comments": [
+      { "user": "Kevin", "text": "Bunganya fresh banget dan wangi." },
+      { "user": "Citra", "text": "Pesan bouquet ulang tahun, hasilnya cantik!" }
+    ],
+    "products": [
+      { "name": "Bouquet Mawar", "price": 150000 },
+      { "name": "Bunga Meja", "price": 120000 },
+      { "name": "Bucket Graduation", "price": 180000 }
+    ]
+  },
+  {
+    "id": 10,
+    "name": "Kedai Kopi Sumbersari",
+    "alamat": "Jl. Raya Sumbersari No.310, Ketawanggede, Kec. Lowokwaru, Kota Malang, Jawa Timur 65145",
+    "category": "Kuliner",
+    "lat": -7.955999231,
+    "lng": 112.61312222,
+    "description": "Kedai kopi dengan suasana santai, cocok untuk nongkrong atau nugas.",
+    "rating": 4.7,
+    "comments": [
+      { "user": "Gilang", "text": "Kopinya enak, tempatnya cozy banget." },
+      { "user": "Rara", "text": "Suka es kopinya, vibes-nya tenang." }
+    ],
+    "products": [
+      { "name": "Kopi Tubruk", "price": 12000 },
+      { "name": "Es Kopi Susu Gula Aren", "price": 18000 },
+      { "name": "Roti Bakar Coklat", "price": 10000 }
+    ]
+  }
+]
