@@ -82,15 +82,6 @@
       opacity: 0.4;
     }
   }
-  @keyframes jump {
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-8px);
-    }
-  }
 
   --radius-sm: calc(var(--radius) - 4px);
 
