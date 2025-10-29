@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import AnimatedList from "./ui/AnimatedList"; // Import AnimatedList
+import AnimatedList from "./ui/AnimatedList"; 
 import { cn } from "@/lib/utils";
 
 // Tipe Data UMKM
@@ -32,17 +32,16 @@ const UMKMSidebar: React.FC<UMKMSidebarProps> = ({
    */
   const renderUMKMItem = (item: UMKM, index: number, isSelected: boolean) => {
     return (
-      // ✅ Tambahkan lebih banyak padding vertikal (py-6) di sini
       <div
         className={cn(
-          'px-4 py-8 border rounded-lg transition-colors duration-150', // Ubah py-4 menjadi py-6
+          'px-4 py-8 border rounded-lg transition-colors duration-150',
           isSelected
             ? 'bg-muted border-primary/50'
             : 'bg-card border-border hover:bg-muted/50'
         )}
       >
-        <strong className="text-sm font-medium text-foreground line-clamp-1">{item.name}</strong> {/* Opsi: line-clamp-1 jika nama panjang */}
-        <div className="text-xs text-muted-foreground mt-1"> {/* Tambah mt-1 */}
+        <strong className="text-sm font-medium text-foreground line-clamp-1">{item.name}</strong> 
+        <div className="text-xs text-muted-foreground mt-1">
           {item.category} • ⭐{item.rating}
         </div>
       </div>
@@ -71,7 +70,6 @@ const UMKMSidebar: React.FC<UMKMSidebarProps> = ({
             displayScrollbar={true}
             enableArrowNavigation={true}
             showGradients={true}
-            // itemContainerClassName diatur paddingnya oleh wrapper (px-4)
           />
         )}
       </div>
