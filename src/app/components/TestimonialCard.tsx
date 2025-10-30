@@ -58,7 +58,7 @@ export default function TestimonialCard({
   };
 
   return (
-    <div className="w-[380px] h-[280px] bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col">
+    <div className="w-[380px] h-[280px] bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col">
       {/* Header */}
       <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center shrink-0 min-h-[72px]">
         <div className="flex gap-3 flex-1 min-w-0">
@@ -77,7 +77,7 @@ export default function TestimonialCard({
           </div>
         </div>
         <div className="flex items-center shrink-0">
-          <div className="flex items-center gap-1.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm px-2.5 py-1.5 rounded-lg border border-gray-200/50 dark:border-gray-600/50 shadow-sm">
+          <div className="flex items-center gap-1.5 bg-linear-to-r from-yellow-50 to-orange-50 dark:from-gray-700 dark:to-gray-600 px-2.5 py-1.5 rounded-lg border border-yellow-200/60 dark:border-gray-600/50 shadow-sm">
             {renderStars(rating)}
             <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 ml-0.5">
               {rating.toFixed(1)}

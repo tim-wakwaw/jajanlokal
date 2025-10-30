@@ -78,7 +78,7 @@ export default function TestimonialCarousel() {
   }
 
   return (
-    <div className="relative overflow-hidden">
+    <div className="relative overflow-hidden w-full">
       {/* Custom CSS for smooth infinite scroll */}
       <style jsx>{`
         @keyframes scroll-left {
@@ -100,11 +100,11 @@ export default function TestimonialCarousel() {
         }
         
         .scroll-left {
-          animation: scroll-left 80s linear infinite;
+          animation: scroll-left 120s linear infinite;
         }
         
         .scroll-right {
-          animation: scroll-right 90s linear infinite;
+          animation: scroll-right 100s linear infinite;
         }
         
         .testimonial-row {
@@ -113,9 +113,9 @@ export default function TestimonialCarousel() {
       `}</style>
 
       {/* Row 1 - Left to Right */}
-      <div className="mb-8 overflow-hidden">
+      <div className="mb-8 overflow-hidden -mx-4">
         <div 
-          className="flex gap-6 scroll-left testimonial-row"
+          className="flex gap-6 scroll-left testimonial-row pl-4"
         >
           {testimonials.map((testimonial, index) => (
             <div key={`row1-${index}`} className="shrink-0">
@@ -132,9 +132,9 @@ export default function TestimonialCarousel() {
       </div>
 
       {/* Row 2 - Right to Left (reversed) */}
-      <div className="overflow-hidden">
+      <div className="overflow-hidden -mx-4">
         <div 
-          className="flex gap-6 scroll-right testimonial-row"
+          className="flex gap-6 scroll-right testimonial-row pl-4"
         >
           {testimonials.slice().reverse().map((testimonial, index) => (
             <div key={`row2-${index}`} className="shrink-0">

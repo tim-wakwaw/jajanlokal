@@ -22,10 +22,14 @@ export default function TestimonialSection() {
             Testimoni nyata dari pelanggan yang telah merasakan pelayanan terbaik UMKM lokal
           </p>
         </motion.div>
+      </div>
 
-        {/* Testimonial Carousel */}
+      {/* Testimonial Carousel - Full Width */}
+      <div className="w-full">
         <TestimonialCarousel />
+      </div>
 
+      <div className="container mx-auto px-4">
         {/* Stats Section */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
