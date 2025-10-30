@@ -13,6 +13,7 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import UMKMSidebar from "../components/UMKMSidebar";
+import LazyImage from "../components/LazyImage";
 
 
 // --- Tipe Data ---
@@ -153,6 +154,14 @@ export default function PetaUMKM() {
       .then((data) => {
           setUmkmList(data);
           setIsLoadingData(false);
+          
+          // Preload images setelah data dimuat
+          data.forEach((umkm: UMKM) => {
+            if (umkm.image) {
+              const img = new Image();
+              img.src = umkm.image;
+            }
+          });
         })
       .catch((err) => {
           console.error("Gagal load JSON:", err);
@@ -418,10 +427,10 @@ export default function PetaUMKM() {
           >
             {/* Gambar UMKM */}
             {selectedUMKM.image && (
-              <div 
-                className="w-full h-32 mb-3 bg-cover bg-center rounded-t-lg"
-                style={{ backgroundImage: `url(${selectedUMKM.image})` }}
-                aria-label={selectedUMKM.name}
+              <LazyImage
+                src={selectedUMKM.image}
+                alt={selectedUMKM.name}
+                className="w-full h-32 mb-3 rounded-t-lg"
               />
             )}
             
