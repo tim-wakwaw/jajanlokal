@@ -2,11 +2,11 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-// --- PASTIKAN IMPOR INI BENAR ---
+// Impor 'easeOut' untuk animasi section
 import { motion, easeOut } from "motion/react";
 import { AppleCardsCarousel, type CardData } from "@/app/components/ui/apple-cards-carousel";
 
-// Tipe data mentah dari JSON (tambahkan rating)
+// Tipe data mentah dari JSON (tambahkan rating dan image)
 interface UmkmData {
     id: number;
     name: string;
@@ -14,6 +14,7 @@ interface UmkmData {
     description: string;
     products: { name: string; price: number }[];
     rating: number;
+    image?: string; // <-- Pastikan 'image' ada di sini
 }
 
 // --- Helper untuk Konten Card ---
@@ -37,17 +38,8 @@ const ProductDetailContent = ({ description, products }: { description: string, 
     </div>
 );
 
-// --- Helper untuk Gambar ---
-const categoryImages: { [key: string]: string } = {
-    "Kuliner": "/assets/actor.png",
-    "Fashion": "/assets/tailor.png",
-    "Retail": "/assets/movie-director.png",
-    "Kesehatan": "/assets/actor.png",
-    "Kerajinan": "/assets/tailor.png",
-};
-const getImagePath = (category: string): string => {
-    return categoryImages[category] || "/assets/movie-director.png";
-};
+// --- Hapus Helper Gambar (categoryImages dan getImagePath) ---
+// Kita akan gunakan umkm.image dari JSON
 
 // --- Komponen Section Utama ---
 export default function AppleCarouselSection() {
@@ -55,7 +47,7 @@ export default function AppleCarouselSection() {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        fetch("/data/umkmData.json")
+        fetch("/data/umkmData.json") //
             .then((response) => response.json())
             .then((data: UmkmData[]) => {
 
@@ -66,7 +58,8 @@ export default function AppleCarouselSection() {
                     id: umkm.id,
                     category: umkm.category,
                     title: umkm.name,
-                    src: getImagePath(umkm.category),
+                    // --- PERUBAHAN UTAMA: Gunakan umkm.image ---
+                    src: umkm.image || "/assets/movie-director.png", // Fallback jika image null/undefined
                     content: <ProductDetailContent description={umkm.description} products={umkm.products} />
                 }));
 
@@ -79,7 +72,7 @@ export default function AppleCarouselSection() {
             });
     }, []);
 
-    // --- GUNAKAN variabel 'easeOut' ---
+    // Varian animasi (dengan easeOut yang diimpor)
     const sectionVariants = {
         hidden: { opacity: 0, y: 30 },
         visible: {
@@ -87,7 +80,7 @@ export default function AppleCarouselSection() {
             y: 0,
             transition: {
                 duration: 0.5,
-                ease: easeOut // <-- Gunakan variabel, bukan string atau 'as any'
+                ease: easeOut
             }
         }
     };
@@ -98,7 +91,7 @@ export default function AppleCarouselSection() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, amount: 0.2 }}
-            variants={sectionVariants} // <-- Error seharusnya hilang
+            variants={sectionVariants}
         >
             <div className="container mx-auto px-4">
                 <h2 className="text-3xl md:text-4xl font-bold text-center mb-8 md:mb-12 text-neutral-800 dark:text-neutral-200">
