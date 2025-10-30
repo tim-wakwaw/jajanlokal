@@ -6,18 +6,18 @@ import Link from "next/link";
 import { motion, easeOut } from "motion/react";
 import { AppleCardsCarousel, type CardData } from "@/app/components/ui/apple-cards-carousel";
 
-// Tipe data mentah dari JSON (tambahkan rating)
+// Tipe data mentah dari JSON (tambahkan rating dan image)
 interface UmkmData {
     id: number;
     name: string;
+    image?: string;
     category: string;
     description: string;
     products: { name: string; price: number }[];
     rating: number;
 }
 
-// --- Helper untuk Konten Card ---
-const ProductDetailContent = ({ description, products }: { description: string, products?: { name: string; price: number }[] }) => (
+const ProductDetailContent = ({ description, products, umkmId }: { description: string, products?: { name: string; price: number }[], umkmId: number }) => (
     <div>
         <h4 className="font-semibold mb-2 text-neutral-800 dark:text-neutral-200">Deskripsi</h4>
         <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">{description}</p>
@@ -31,9 +31,12 @@ const ProductDetailContent = ({ description, products }: { description: string, 
                 </ul>
             </>
         )}
-        <button className="mt-6 px-4 py-2 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors">
+        <Link 
+            href={`/peta-umkm?umkm=${umkmId}`}
+            className="inline-block mt-6 px-4 py-2 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
+        >
             Lihat Detail UMKM
-        </button>
+        </Link>
     </div>
 );
 
@@ -58,16 +61,19 @@ export default function AppleCarouselSection() {
         fetch("/data/umkmData.json")
             .then((response) => response.json())
             .then((data: UmkmData[]) => {
-
+                // Sort berdasarkan rating tertinggi ke terendah
                 const sortedData = data.sort((a, b) => b.rating - a.rating);
                 const top4 = sortedData.slice(0, 4);
 
+                // Log untuk debug
+                console.log("Top 4 UMKM berdasarkan rating:", top4.map(u => ({ name: u.name, rating: u.rating })));
+
                 const formattedData: CardData[] = top4.map((umkm) => ({
                     id: umkm.id,
-                    category: umkm.category,
+                    category: `${umkm.category} • ⭐ ${umkm.rating}`,
                     title: umkm.name,
-                    src: getImagePath(umkm.category),
-                    content: <ProductDetailContent description={umkm.description} products={umkm.products} />
+                    src: umkm.image || getImagePath(umkm.category), // Gunakan gambar dari JSON atau fallback
+                    content: <ProductDetailContent description={umkm.description} products={umkm.products} umkmId={umkm.id} />
                 }));
 
                 setPopularUmkm(formattedData);
