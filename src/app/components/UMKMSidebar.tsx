@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 // Tipe Data UMKM
 interface Product { name: string; price: number;}
 interface Comment { user: string; text: string;}
-interface UMKM { id: number; name: string; alamat: string; category: string; lat: number; lng: number; description: string; rating: number; comments: Comment[]; products: Product[]; }
+interface UMKM { id: number; name: string; image?: string; alamat: string; category: string; lat: number; lng: number; description: string; rating: number; comments: Comment[]; products: Product[]; }
 
 
 interface UMKMSidebarProps {
@@ -34,15 +34,29 @@ const UMKMSidebar: React.FC<UMKMSidebarProps> = ({
     return (
       <div
         className={cn(
-          'px-4 py-8 border rounded-lg transition-colors duration-150',
+          'px-4 py-3 border rounded-lg transition-colors duration-150 flex items-start gap-3',
           isSelected
             ? 'bg-muted border-primary/50'
             : 'bg-card border-border hover:bg-muted/50'
         )}
       >
-        <strong className="text-sm font-medium text-foreground line-clamp-1">{item.name}</strong> 
-        <div className="text-xs text-muted-foreground mt-1">
-          {item.category} • ⭐{item.rating}
+        {/* Gambar UMKM */}
+        {item.image && (
+          <div className="shrink-0 w-12 h-12 rounded-md overflow-hidden">
+            <div
+              className="w-full h-full bg-cover bg-center"
+              style={{ backgroundImage: `url(${item.image})` }}
+              aria-label={item.name}
+            />
+          </div>
+        )}
+        
+        {/* Info UMKM */}
+        <div className="flex-1 min-w-0">
+          <strong className="text-sm font-medium text-foreground line-clamp-1">{item.name}</strong> 
+          <div className="text-xs text-muted-foreground mt-1">
+            {item.category} • ⭐{item.rating}
+          </div>
         </div>
       </div>
     );
@@ -64,7 +78,7 @@ const UMKMSidebar: React.FC<UMKMSidebarProps> = ({
           <AnimatedList<UMKM>
             items={items}
             renderItem={renderUMKMItem}
-            onItemSelect={(item, index) => onItemClick(item)}
+            onItemSelect={(item) => onItemClick(item)}
             className="h-full absolute inset-x-0 top-0 bottom-0"
             listHeight="h-full"
             displayScrollbar={true}

@@ -32,10 +32,32 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = localStorage.getItem('theme') || 'system';
+                  var systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                  var effectiveTheme = theme === 'system' ? systemTheme : theme;
+                  
+                  if (effectiveTheme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning
       >
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ThemeProvider>
           {/* Navbar fixed di paling atas */}
           <div className="fixed top-0 left-0 right-0 z-50">
             <Navbar>
@@ -43,10 +65,12 @@ export default function RootLayout({
                 <NavbarLogo />
                 <NavItems
                   items={[
-                    { name: "Beranda", link: "/" },
-                    { name: "UMKM", link: "/umkm" },
+                    { name: "Home", link: "/" },
+                    { name: "Menu", link: "/menu" },
                     { name: "Peta UMKM", link: "/peta-umkm" },
-                    { name: "Tentang", link: "/tentang" },
+                    { name: "About", link: "/about" },
+                    { name: "Blog", link: "/blog" },
+                    { name: "Kontak", link: "/kontak" },
                   ]}
                 />
                 <NavbarButton href="/daftar" variant="primary">Daftar</NavbarButton>
