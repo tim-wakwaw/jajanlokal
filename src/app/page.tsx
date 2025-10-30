@@ -1,8 +1,8 @@
 import HeroSection from "./components/HeroSection";
 import ThemeToggle from "./components/ThemeToggle";
 import UMKMSection from "./components/UMKMSection";
-// ----- PERBAIKI IMPOR INI -----
-import AppleCarouselSection from "./components/AppleCarouselSection"; // <-- Impor DARI FILE SECTION, TANPA .tsx
+import AppleCarouselSection from "./components/AppleCarouselSection";
+import TestimonialSection from "./components/TestimonialSection";
 
 export default function Home() {
   return (
@@ -10,7 +10,8 @@ export default function Home() {
       <ThemeToggle />
       <HeroSection />
       <UMKMSection />
-      <AppleCarouselSection /> {/* <-- Penggunaan sudah benar */}
+      <AppleCarouselSection />
+      <TestimonialSection />
     </>
   );
 }

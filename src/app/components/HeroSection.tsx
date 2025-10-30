@@ -5,7 +5,7 @@ import { TypewriterEffect } from "@/components/ui/typewriter-effect";
 import { Spotlight } from "@/components/ui/spotlight-new";
 import { BackgroundGradient } from "@/components/ui/background-gradient";
 import Image from "next/image";
-import { Navbar } from "./ui/resizable-navbar";
+// import { Navbar } from "./ui/resizable-navbar";
 
 export default function HeroSection() {
   const words = [
