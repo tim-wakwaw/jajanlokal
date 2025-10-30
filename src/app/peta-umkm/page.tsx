@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import dynamic from "next/dynamic";
 import "leaflet/dist/leaflet.css";
 import { FloatingDock } from "../components/ui/floating-dock";
 import {
@@ -14,7 +13,6 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import UMKMSidebar from "../components/UMKMSidebar";
-import { useOutsideClick } from "@/hooks/useOutsideClick";
 
 
 // --- Tipe Data ---
@@ -38,6 +36,7 @@ interface Comment { user: string; text: string;}
  * @typedef {object} UMKM
  * @property {number} id - ID unik UMKM.
  * @property {string} name - Nama UMKM.
+ * @property {string} [image] - URL gambar UMKM.
  * @property {string} alamat - Alamat UMKM.
  * @property {string} category - Kategori UMKM.
  * @property {number} lat - Latitude lokasi UMKM.
@@ -47,17 +46,10 @@ interface Comment { user: string; text: string;}
  * @property {Comment[]} comments - Daftar komentar tentang UMKM.
  * @property {Product[]} products - Daftar produk yang dijual UMKM.
  */
-interface UMKM { id: number; name: string; alamat: string; category: string; lat: number; lng: number; description: string; rating: number; comments: Comment[]; products: Product[]; }
+interface UMKM { id: number; name: string; image?: string; alamat: string; category: string; lat: number; lng: number; description: string; rating: number; comments: Comment[]; products: Product[]; }
 
 // --- Tipe Leaflet & React-Leaflet ---
-import type { MapContainerProps, TileLayerProps, MarkerProps, PopupProps } from 'react-leaflet';
-import type { LatLngExpression, Icon as LeafletIcon, Map as LeafletMap, LayerGroup } from 'leaflet';
-
-// Komponen react-leaflet dimuat secara dinamis untuk mencegah error SSR
-const MapContainer = dynamic<MapContainerProps>(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false });
-const TileLayer = dynamic<TileLayerProps>(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false });
-const Marker = dynamic<MarkerProps>(() => import('react-leaflet').then(mod => mod.Marker), { ssr: false });
-const Popup = dynamic<PopupProps>(() => import('react-leaflet').then(mod => mod.Popup), { ssr: false });
+import type { Icon as LeafletIcon, Map as LeafletMap, LayerGroup } from 'leaflet';
 
 /**
  * Komponen halaman untuk menampilkan peta interaktif UMKM dengan ikon per kategori,
@@ -260,7 +252,7 @@ export default function PetaUMKM() {
       markersLayerGroup.addLayer(marker);
     });
 
-  }, [mapRef.current, umkmList, search, category, isLoadingData]);
+  }, [umkmList, search, category, isLoadingData]);
 
     /**
    * Fungsi untuk mendapatkan lokasi pengguna saat ini, menampilkan marker
@@ -354,7 +346,7 @@ export default function PetaUMKM() {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: "-100%", opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="absolute top-0 left-0 h-full w-124 bg-card border-r border-border overflow-hidden z-[450] shadow-lg"
+            className="absolute top-0 left-0 h-full w-124 bg-card border-r border-border overflow-hidden z-450 shadow-lg"
           >
             <UMKMSidebar
               items={filteredUMKMList}
@@ -369,11 +361,11 @@ export default function PetaUMKM() {
             "flex-1 flex flex-col transition-all duration-300 ease-in-out relative h-full",
             isSidebarOpen ? "md:ml-80" : "ml-0"
           )}>
-        <div id="map" className="flex-1 h-full w-full z-[400]" />
+        <div id="map" className="flex-1 h-full w-full z-400" />
       </div>
 
       {isClient && (
-         <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[1000]">
+         <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-1000">
            <FloatingDock
              items={dockItems}
              desktopClassName=""
@@ -388,7 +380,7 @@ export default function PetaUMKM() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-[calc(4rem+1.5rem)] left-1/2 -translate-x-1/2 z-[900] p-2 bg-card border rounded-lg shadow-xl flex items-center gap-2"
+            className="fixed bottom-[calc(4rem+1.5rem)] left-1/2 -translate-x-1/2 z-900 p-2 bg-card border rounded-lg shadow-xl flex items-center gap-2"
           >
             <IconSearch className="h-5 w-5 text-muted-foreground"/>
             <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama UMKM..." className="border-none focus:ring-0 bg-transparent text-sm w-60" autoFocus />
@@ -403,7 +395,7 @@ export default function PetaUMKM() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-[calc(4rem+1.5rem)] left-1/2 -translate-x-1/2 z-[900] p-3 bg-card border rounded-lg shadow-xl flex flex-col gap-2 w-60"
+            className="fixed bottom-[calc(4rem+1.5rem)] left-1/2 -translate-x-1/2 z-900 p-3 bg-card border rounded-lg shadow-xl flex flex-col gap-2 w-60"
           >
             <div className="flex justify-between items-center mb-1">
               <span className="text-sm font-medium">Filter Kategori</span>
@@ -422,30 +414,41 @@ export default function PetaUMKM() {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-[calc(4rem+1.5rem)] left-1/2 -translate-x-1/2 z-[900] bg-card border p-3 rounded-lg shadow-lg w-80 text-sm max-h-[40vh] overflow-y-auto"
+            className="fixed bottom-[calc(4rem+1.5rem)] left-1/2 -translate-x-1/2 z-900 bg-card border rounded-lg shadow-lg w-80 text-sm max-h-[50vh] overflow-y-auto"
           >
-            <div className="flex justify-between items-start">
-              <div>
-                <div className="font-semibold text-lg mb-1">{selectedUMKM.name}</div>
-                <div className="text-xs text-muted-foreground mb-2"> {selectedUMKM.category} • ⭐ {selectedUMKM.rating} </div>
-              </div>
-              <button onClick={() => setSelectedUMKM(null)} className="p-1 rounded-full hover:bg-muted -mt-1 -mr-1"> <IconX className="h-4 w-4 text-muted-foreground"/> </button>
-            </div>
-            <p className="text-sm mb-2">{selectedUMKM.description}</p>
-            <div className="mb-2">
-              <strong className="text-sm">Produk:</strong>
-              <ul className="list-disc list-inside text-xs mt-1 space-y-0.5">
-                {selectedUMKM.products.map((p, i) => ( <li key={i}>{p.name} - Rp{p.price.toLocaleString()}</li> ))}
-              </ul>
-            </div>
-            {selectedUMKM.comments && selectedUMKM.comments.length > 0 && (
-                <div>
-                <strong className="text-sm">Komentar:</strong>
-                <ul className="list-disc list-inside text-xs mt-1 space-y-0.5">
-                    {selectedUMKM.comments.map((c, i) => ( <li key={i}><b>{c.user}:</b> {c.text}</li> ))}
-                </ul>
-                </div>
+            {/* Gambar UMKM */}
+            {selectedUMKM.image && (
+              <div 
+                className="w-full h-32 mb-3 bg-cover bg-center rounded-t-lg"
+                style={{ backgroundImage: `url(${selectedUMKM.image})` }}
+                aria-label={selectedUMKM.name}
+              />
             )}
+            
+            <div className="p-3">
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="font-semibold text-lg mb-1">{selectedUMKM.name}</div>
+                  <div className="text-xs text-muted-foreground mb-2"> {selectedUMKM.category} • ⭐ {selectedUMKM.rating} </div>
+                </div>
+                <button onClick={() => setSelectedUMKM(null)} className="p-1 rounded-full hover:bg-muted -mt-1 -mr-1"> <IconX className="h-4 w-4 text-muted-foreground"/> </button>
+              </div>
+              <p className="text-sm mb-2">{selectedUMKM.description}</p>
+              <div className="mb-2">
+                <strong className="text-sm">Produk:</strong>
+                <ul className="list-disc list-inside text-xs mt-1 space-y-0.5">
+                  {selectedUMKM.products.map((p, i) => ( <li key={i}>{p.name} - Rp{p.price.toLocaleString()}</li> ))}
+                </ul>
+              </div>
+              {selectedUMKM.comments && selectedUMKM.comments.length > 0 && (
+                  <div>
+                  <strong className="text-sm">Komentar:</strong>
+                  <ul className="list-disc list-inside text-xs mt-1 space-y-0.5">
+                      {selectedUMKM.comments.map((c, i) => ( <li key={i}><b>{c.user}:</b> {c.text}</li> ))}
+                  </ul>
+                  </div>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
