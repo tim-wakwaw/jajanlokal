@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { motion } from "motion/react"; // Impor motion saja
+// --- PASTIKAN IMPOR INI BENAR ---
+import { motion, easeOut } from "motion/react";
 import { AppleCardsCarousel, type CardData } from "@/app/components/ui/apple-cards-carousel";
 
 // Tipe data mentah dari JSON (tambahkan rating)
@@ -78,7 +79,7 @@ export default function AppleCarouselSection() {
             });
     }, []);
 
-    // --- PERBAIKI VARIANTS DENGAN TYPE ASSERTION ---
+    // --- GUNAKAN variabel 'easeOut' ---
     const sectionVariants = {
         hidden: { opacity: 0, y: 30 },
         visible: {
@@ -86,7 +87,7 @@ export default function AppleCarouselSection() {
             y: 0,
             transition: {
                 duration: 0.5,
-                ease: "easeOut" as any // <-- Tambahkan 'as any' di sini
+                ease: easeOut // <-- Gunakan variabel, bukan string atau 'as any'
             }
         }
     };
