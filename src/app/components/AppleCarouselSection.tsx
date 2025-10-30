@@ -31,7 +31,7 @@ const ProductDetailContent = ({ description, products, umkmId }: { description: 
                 </ul>
             </>
         )}
-        <Link 
+        <Link
             href={`/peta-umkm?umkm=${umkmId}`}
             className="inline-block mt-6 px-4 py-2 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
         >
@@ -107,7 +107,7 @@ export default function AppleCarouselSection() {
             variants={sectionVariants} // <-- Error seharusnya hilang
         >
             <div className="container mx-auto px-4">
-                <h2 className="text-3xl md:text-4xl font-bold text-center mb-8 md:mb-12 text-neutral-800 dark:text-neutral-200">
+                <h2 className="text-4xl md:text-5xl font-bold mb-8 bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent text-center leading-tight py-2">
                     UMKM Populer Minggu Ini
                 </h2>
 

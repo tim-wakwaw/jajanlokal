@@ -157,7 +157,7 @@ export default function PetaUMKM() {
           // Preload images setelah data dimuat
           data.forEach((umkm: UMKM) => {
             if (umkm.image) {
-              const img = new (window as any).Image(); 
+              const img = new Image(); 
               img.src = umkm.image;
             }
           });

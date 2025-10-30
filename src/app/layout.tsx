@@ -2,13 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "./providers/ThemeProviders";
-import {
-  Navbar,
-  NavBody,
-  NavItems,
-  NavbarLogo,
-  NavbarButton
-} from "./components/ui/resizable-navbar";
+import Header from "./header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -58,25 +52,8 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <ThemeProvider>
-          {/* Navbar fixed di paling atas */}
-          <div className="fixed top-0 left-0 right-0 z-50">
-            <Navbar>
-              <NavBody>
-                <NavbarLogo />
-                <NavItems
-                  items={[
-                    { name: "Home", link: "/" },
-                    { name: "Menu", link: "/menu" },
-                    { name: "Peta UMKM", link: "/peta-umkm" },
-                    { name: "About", link: "/about" },
-                    { name: "Blog", link: "/blog" },
-                    { name: "Kontak", link: "/kontak" },
-                  ]}
-                />
-                <NavbarButton href="/daftar" variant="primary">Daftar</NavbarButton>
-              </NavBody>
-            </Navbar>
-          </div>
+          {/* Header dengan Navbar untuk desktop dan mobile */}
+          <Header />
           {/* Konten halaman diberi padding top agar tidak ketutup navbar */}
           <div className="pt-14">
             {children}

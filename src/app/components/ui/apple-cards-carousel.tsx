@@ -136,7 +136,7 @@ export const AppleCardsCarousel = ({ items, initialScroll = 0 }: CarouselProps) 
                                 <AnimatePresence>
                                     {hoveredIndex === index && (
                                         <motion.span
-                                            className="absolute inset-[-4px] bg-neutral-200 dark:bg-slate-800/[0.8] block rounded-xl md:rounded-2xl"
+                                            className="absolute -inset-1 bg-neutral-200 dark:bg-slate-800/80 block rounded-xl md:rounded-2xl"
                                             layoutId="hoverBackground"
                                             initial={{ opacity: 0 }}
                                             animate={{
@@ -265,7 +265,7 @@ export const Card = ({
                             transition={{ ease: "easeOut", duration: 0.3 }}
                             ref={containerRef as React.RefObject<HTMLDivElement>}
                             layoutId={layout ? `card-${card.id}` : undefined}
-                            className="relative z-[60] h-fit max-w-3xl rounded-xl bg-white p-4 shadow-xl md:p-8 dark:bg-neutral-900"
+                            className="relative z-60 h-fit max-w-3xl rounded-xl bg-white p-4 shadow-xl md:p-8 dark:bg-neutral-900"
                         >
                             <button
                                 className="sticky top-2 right-2 z-50 ml-auto flex h-7 w-7 items-center justify-center rounded-full bg-neutral-700 hover:bg-neutral-800 dark:bg-neutral-200 dark:hover:bg-neutral-300 transition-colors"
@@ -307,7 +307,7 @@ export const Card = ({
 
             <CardContainer
                 containerClassName={cn(
-                    "h-72 w-56 md:h-96 md:w-72 p-0"
+                    "h-80 w-56 md:h-[420px] md:w-72 p-0"
                     // Hapus z-index dari sini, sudah dihandle parent
                 )}
                 className="h-full w-full"
@@ -336,20 +336,23 @@ export const Card = ({
                             className="h-full w-full object-cover"
                         />
                     </CardItem>
-                    <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                    <div className="pointer-events-none absolute inset-0 z-10 bg-linear-to-t from-black/50 via-transparent to-transparent" />
                     <CardItem
                         translateZ={40}
-                        className="relative z-20 p-4 md:p-5"
+                        className="relative z-20 p-4 pb-8 md:p-6 md:pb-10"
                     >
                         <motion.p
                             layoutId={layout ? `category-${card.id}` : undefined}
-                            className="text-xs font-medium text-white/80 md:text-sm"
+                            className="text-xs font-medium text-white/80 md:text-sm mb-2"
                         >
                             {card.category}
                         </motion.p>
                         <motion.p
                             layoutId={layout ? `title-${card.id}` : undefined}
-                            className="mt-1 text-base font-semibold text-balance text-white md:text-xl"
+                            className="text-base font-semibold text-white md:text-xl leading-normal overflow-wrap-break-word"
+                            style={{ 
+                                textShadow: '0 2px 4px rgba(0,0,0,0.8)'
+                            }}
                         >
                             {card.title}
                         </motion.p>
