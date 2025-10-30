@@ -2,6 +2,7 @@
 
 import React from "react";
 import AnimatedList from "./ui/AnimatedList"; 
+import LazyImage from "./LazyImage";
 import { cn } from "@/lib/utils";
 
 // Tipe Data UMKM
@@ -42,13 +43,11 @@ const UMKMSidebar: React.FC<UMKMSidebarProps> = ({
       >
         {/* Gambar UMKM */}
         {item.image && (
-          <div className="shrink-0 w-12 h-12 rounded-md overflow-hidden">
-            <div
-              className="w-full h-full bg-cover bg-center"
-              style={{ backgroundImage: `url(${item.image})` }}
-              aria-label={item.name}
-            />
-          </div>
+          <LazyImage
+            src={item.image}
+            alt={item.name}
+            className="shrink-0 w-12 h-12 rounded-md"
+          />
         )}
         
         {/* Info UMKM */}
