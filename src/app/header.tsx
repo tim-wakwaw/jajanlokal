@@ -15,7 +15,7 @@ import {
 
 const navItems = [
   { name: "Home", link: "/" },
-  { name: "Menu", link: "/menu" },
+  { name: "Produk", link: "/produk" },
   { name: "Peta UMKM", link: "/peta-umkm" },
   { name: "About", link: "/about" },
   { name: "Blog", link: "/blog" },
