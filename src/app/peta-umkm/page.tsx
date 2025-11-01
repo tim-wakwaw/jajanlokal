@@ -15,6 +15,8 @@ import { cn } from "@/lib/utils";
 import UMKMSidebar from "../components/UMKMSidebar";
 import UMKMCard from "../components/UMKMCard"; 
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import ReactDOMServer from 'react-dom/server';
+import MapPopupCard from '../components/MapPopupCard';
 
 // --- Tipe Data ---
 
@@ -226,10 +228,8 @@ export default function PetaUMKM() {
         attribution: '&copy; OSM &copy; CARTO', subdomains: 'abcd', maxZoom: 20
       }).addTo(mapRef.current);
        if (!markersLayerGroupRef.current && mapRef.current) {
-         console.log("Membuat marker layer group...");
          markersLayerGroupRef.current = L.layerGroup().addTo(mapRef.current);
        } else {
-         console.log("Marker layer group sudah ada.");
        }
     } else {
         if (!mapReady) console.log("Map belum siap (mapReady false)");
@@ -240,7 +240,6 @@ export default function PetaUMKM() {
 
     return () => {
       if (mapRef.current) {
-        console.log("Membersihkan map...");
         mapRef.current.remove();
         mapRef.current = null;
       }
@@ -261,15 +260,12 @@ export default function PetaUMKM() {
         if (markersLayerGroup) markersLayerGroup.clearLayers();
         return;
     }
-
-    console.log("Updating markers...");
     markersLayerGroup.clearLayers();
 
     const filtered = umkmList.filter(u =>
       u.name.toLowerCase().includes(search.toLowerCase()) &&
       (category === "Semua" || u.category === category)
     );
-    console.log(`Menampilkan ${filtered.length} marker terfilter.`);
 
     filtered.forEach((umkm) => {
       const categoryKey = umkm.category.toLowerCase();
@@ -281,31 +277,29 @@ export default function PetaUMKM() {
       }
 
       const marker = L.marker([umkm.lat, umkm.lng], { icon: selectedIcon });
+      const popupComponent = <MapPopupCard data={umkm} />;
+      const popupContent = ReactDOMServer.renderToString(popupComponent);
 
-      const popupContent = `
-        <div class="text-sm">
-          <strong>${umkm.name}</strong><br />
-          <span>${umkm.category}</span><br />
-          ⭐ ${umkm.rating}<br/>
-          <button id="detail-${umkm.id}" data-umkmid="${umkm.id}" class="text-blue-500 underline mt-1 cursor-pointer">
-            Lihat Detail
-          </button>
-        </div>
-      `;
-      marker.bindPopup(popupContent);
+      marker.bindPopup(popupContent, {
+        className: 'custom-leaflet-popup' 
+      });
 
       marker.on("popupopen", (e) => {
             const btn = e.popup.getElement()?.querySelector<HTMLButtonElement>(`button[data-umkmid="${umkm.id}"]`);
             if (btn) {
               const newBtn = btn.cloneNode(true) as HTMLButtonElement;
               btn.parentNode?.replaceChild(newBtn, btn);
-              newBtn.onclick = () => setSelectedUMKM(umkm);
+              
+              newBtn.onclick = () => {
+                setSelectedUMKM(umkm);
+                currentMap.closePopup();
+              };
             }
           });
       markersLayerGroup.addLayer(marker);
     });
 
-  }, [umkmList, search, category, isLoadingData]); 
+  }, [umkmList, search, category, isLoadingData]);
 
    /**
    * Fungsi untuk mendapatkan lokasi pengguna saat ini, menampilkan marker
