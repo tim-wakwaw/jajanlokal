@@ -246,12 +246,12 @@ const AnimatedList = <T extends unknown>({
         <>
           {/* Gradient Atas */}
           <div
-            className="absolute top-0 left-0 right-0 h-[50px] bg-gradient-to-b from-card to-transparent pointer-events-none transition-opacity duration-300 ease"
+            className="absolute top-0 left-0 right-0 h-[50px] bg-linear-to-b from-card to-transparent pointer-events-none transition-opacity duration-300 ease"
             style={{ opacity: topGradientOpacity }}
           ></div>
           {/* Gradient Bawah */}
           <div
-            className="absolute bottom-0 left-0 right-0 h-[50px] bg-gradient-to-t from-card to-transparent pointer-events-none transition-opacity duration-300 ease"
+            className="absolute bottom-0 left-0 right-0 h-[50px] bg-linear-to-t from-card to-transparent pointer-events-none transition-opacity duration-300 ease"
             style={{ opacity: bottomGradientOpacity }}
           ></div>
         </>

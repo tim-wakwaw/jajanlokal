@@ -9,7 +9,7 @@ export default function Footer() {
     // 2. Definisi 'Logo' yang sebelumnya ada di sini sudah dihapus.
 
     return (
-        <footer className="w-full border-t border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-950">
+        <footer className="w-full border-t border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-950 relative z-2000">
             <div className="container mx-auto max-w-7xl px-6 py-16">
                 {/* Bagian Atas: Logo, Link, dan Newsletter */}
                 <div className="grid grid-cols-1 gap-12 md:grid-cols-12">

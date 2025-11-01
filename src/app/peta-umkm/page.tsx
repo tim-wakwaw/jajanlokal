@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import "leaflet/dist/leaflet.css";
 import { FloatingDock } from "../components/ui/floating-dock";
 import {
@@ -14,6 +14,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import UMKMSidebar from "../components/UMKMSidebar";
 import UMKMCard from "../components/UMKMCard"; 
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 // --- Tipe Data ---
 
@@ -90,9 +91,53 @@ export default function PetaUMKM() {
   const userLocationCircleRef = useRef<import('leaflet').Circle | null>(null);
   /** Status loading data UMKM dari JSON. */
   const [isLoadingData, setIsLoadingData] = useState(true);
-
+  const [sidebarWidth, setSidebarWidth] = useState(320); 
+  const [isResizing, setIsResizing] = useState(false);
   /** Ref untuk elemen DOM Sidebar. */
   const sidebarRef = useRef<HTMLDivElement>(null!);
+
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+
+
+  // Dipanggil saat mouse ditekan pada resizer
+  const handleResizeMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+  };
+
+  // Dipanggil saat mouse bergerak (hanya jika isResizing true)
+  const handleResizeMouseMove = useCallback((e: MouseEvent) => {
+    if (!isResizing || !isDesktop) return; // Hanya jalankan jika sedang resizing & di desktop
+
+    // Batas lebar minimum dan maksimum
+    const minWidth = 320; // 20rem (w-80)
+    const maxWidth = 640; // 40rem (w-[40rem])
+
+    // e.clientX adalah posisi mouse horizontal. Ini akan jadi lebar baru.
+    const newWidth = e.clientX;
+    
+    // Terapkan batasan
+    const constrainedWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
+    setSidebarWidth(constrainedWidth);
+
+  }, [isResizing, isDesktop]); // Dependensi
+
+  const handleResizeMouseUp = useCallback(() => {
+    setIsResizing(false);
+  }, []);
+
+  // Effect untuk menambah/menghapus listener global
+  useEffect(() => {
+    if (isResizing) {
+      window.addEventListener('mousemove', handleResizeMouseMove);
+      window.addEventListener('mouseup', handleResizeMouseUp);
+    }
+    
+    return () => {
+      window.removeEventListener('mousemove', handleResizeMouseMove);
+      window.removeEventListener('mouseup', handleResizeMouseUp);
+    };
+  }, [isResizing, handleResizeMouseMove, handleResizeMouseUp]);
 
    /**
    * Efek untuk menandai bahwa komponen sudah berjalan di client-side.
@@ -334,41 +379,60 @@ export default function PetaUMKM() {
 
   return (
     <div className="flex h-screen relative">
-      {/* --- Sidebar Daftar UMKM (Animated) --- */}
       <AnimatePresence>
         {isSidebarOpen && (
           <motion.div
             ref={sidebarRef}
-            initial={{ x: "-100%", opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: "-100%", opacity: 0 }}
+            initial={isDesktop ? { x: "-100%", opacity: 0 } : { y: "100%", opacity: 0 }}
+            animate={isDesktop ? { x: 0, opacity: 1 } : { y: 0, opacity: 1 }}
+            exit={isDesktop ? { x: "-100%", opacity: 0 } : { y: "100%", opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="absolute top-0 left-0 h-full w-80 bg-card border-r border-border overflow-hidden z-450 shadow-lg" // Lebar disesuaikan
+            
+            style={isDesktop ? { width: `${sidebarWidth}px` } : {}}
+
+            className="fixed bottom-0 left-0 right-0 h-72 bg-card border-t border-border overflow-hidden z-1000 shadow-lg
+                       md:absolute md:top-0 md:left-0 md:h-full md:border-r md:border-t-0"
           >
             <UMKMSidebar
               items={filteredUMKMList}
               onItemClick={handleSidebarItemClick} 
               isLoading={isLoadingData}
             />
+            <div
+              className="hidden md:block w-2 cursor-col-resize absolute right-0 top-0 h-full bg-transparent hover:bg-primary/50 active:bg-primary/50 transition-colors duration-200"
+              onMouseDown={handleResizeMouseDown}
+            />
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className={cn(
-            "flex-1 flex flex-col transition-all duration-300 ease-in-out relative h-full",
-            isSidebarOpen ? "md:ml-80" : "ml-0"
-          )}>
+      <div 
+        className={cn(
+            "flex-1 flex flex-col relative h-full",
+            "ml-0" 
+          )}
+        style={(isSidebarOpen && isDesktop) ? { 
+            marginLeft: `${sidebarWidth}px`,
+            transition: 'margin-left 0.3s ease-in-out' 
+          } : {
+            marginLeft: '0px',
+            transition: 'margin-left 0.3s ease-in-out'
+          }}
+      >
         <div id="map" className="flex-1 h-full w-full z-400" />
       </div>
 
       {isClient && (
-         <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-1000">
-           <FloatingDock
-             items={dockItems}
-             desktopClassName=""
-             mobileClassName="fixed bottom-5 right-5 z-[1000]"
-           />
-         </div>
+          <FloatingDock
+            items={dockItems}
+            desktopClassName="fixed bottom-5 left-1/2 -translate-x-1/2 z-[1001]"
+            mobileClassName={cn(
+              "fixed right-5 z-[1001] transition-all duration-300 ease-in-out",
+              isSidebarOpen 
+                ? "bottom-[calc(16rem+1.25rem)]"
+                : "bottom-5"
+            )}
+          />
       )}
 
       <AnimatePresence>
@@ -377,7 +441,12 @@ export default function PetaUMKM() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-[calc(4rem+1.5rem)] left-1/2 -translate-x-1/2 z-900 p-2 bg-card border rounded-lg shadow-xl flex items-center gap-2"
+            className={cn(
+              "fixed left-1/2 -translate-x-1/2 z-1002 p-2 bg-card border rounded-lg shadow-xl flex items-center gap-2 transition-all duration-300 ease-in-out",
+              (isSidebarOpen && !isDesktop) 
+                ? "bottom-[calc(20rem+1.5rem)]" 
+                : "bottom-[calc(4rem+1.5rem)]"  
+            )}
           >
             <IconSearch className="h-5 w-5 text-muted-foreground"/>
             <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama UMKM..." className="border-none focus:ring-0 bg-transparent text-sm w-60" autoFocus />
@@ -392,8 +461,13 @@ export default function PetaUMKM() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-[calc(4rem+1.5rem)] left-1/2 -translate-x-1/2 z-900 p-3 bg-card border rounded-lg shadow-xl flex flex-col gap-2 w-60"
-          >
+            className={cn(
+              "fixed left-1/2 -translate-x-1/2 z-1002 p-3 bg-card border rounded-lg shadow-xl flex flex-col gap-2 w-60 transition-all duration-300 ease-in-out",
+              (isSidebarOpen && !isDesktop) 
+                ? "bottom-[calc(20rem+1.5rem)]" 
+                : "bottom-[calc(4rem+1.5rem)]"  
+            )}
+            >
             <div className="flex justify-between items-center mb-1">
               <span className="text-sm font-medium">Filter Kategori</span>
               <button onClick={() => setIsFilterOpen(false)} className="p-1 rounded-full hover:bg-muted -mr-1"> <IconX className="h-4 w-4 text-muted-foreground"/> </button>

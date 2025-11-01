@@ -35,7 +35,7 @@ const UMKMSidebar: React.FC<UMKMSidebarProps> = ({
     return (
       <div
         className={cn(
-          'px-4 py-3 border rounded-lg transition-colors duration-150 flex items-start gap-3',
+          'px-4 py-6 border rounded-lg transition-colors duration-150 flex items-start gap-3',
           isSelected
             ? 'bg-muted border-primary/50'
             : 'bg-card border-border hover:bg-muted/50'
