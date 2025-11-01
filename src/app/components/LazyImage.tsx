@@ -6,15 +6,18 @@ interface LazyImageProps {
   src: string;
   alt: string;
   className?: string;
+  eager?: boolean; 
 }
 
-export default function LazyImage({ src, alt, className }: LazyImageProps) {
+export default function LazyImage({ src, alt, className, eager = false }: LazyImageProps) { // <-- 2. Terima propnya
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isInView, setIsInView] = useState(false);
+  const [isInView, setIsInView] = useState(eager); 
   const [hasError, setHasError] = useState(false);
   const imgRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (eager) return; 
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -30,7 +33,7 @@ export default function LazyImage({ src, alt, className }: LazyImageProps) {
     }
 
     return () => observer.disconnect();
-  }, []);
+  }, [eager]); 
 
   useEffect(() => {
     if (isInView && src) {
@@ -45,7 +48,7 @@ export default function LazyImage({ src, alt, className }: LazyImageProps) {
     <div ref={imgRef} className={`relative overflow-hidden ${className}`}>
       {/* Loading skeleton */}
       {!isLoaded && !hasError && (
-        <div className="absolute inset-0 bg-linear-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse" />
+        <div className="absolute inset-0 bg-linear-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse dark:from-gray-700 dark:via-gray-800 dark:to-gray-700" />
       )}
       
       {/* Error fallback */}

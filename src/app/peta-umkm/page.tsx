@@ -13,7 +13,7 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import UMKMSidebar from "../components/UMKMSidebar";
-import UMKMCard from "../components/UMKMCard"; 
+import { UMKMDetailCard } from "../components/UMKMDetailCard";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import ReactDOMServer from 'react-dom/server';
 import MapPopupCard from '../components/MapPopupCard';
@@ -363,9 +363,25 @@ export default function PetaUMKM() {
 
   const handleSidebarItemClick = (umkm: UMKM) => {
     const currentMap = mapRef.current;
-    if (currentMap) {
+    const markersLayerGroup = markersLayerGroupRef.current;
+    const L = LRef.current; 
+
+    if (currentMap && markersLayerGroup && L) {
       currentMap.setView([umkm.lat, umkm.lng], 17);
-      setSelectedUMKM(umkm);
+      const layers = markersLayerGroup.getLayers();
+      const targetMarker = layers.find(layer => {
+        if (layer instanceof L.Marker) {
+          const latLng = layer.getLatLng();
+          return latLng.lat === umkm.lat && latLng.lng === umkm.lng;
+        }
+        return false;
+      }) as import('leaflet').Marker | undefined; 
+
+
+      if (targetMarker) {
+        targetMarker.openPopup();
+      }
+
     }
   };
  
@@ -475,7 +491,7 @@ export default function PetaUMKM() {
 
       <AnimatePresence>
         {selectedUMKM && (
-          <UMKMCard 
+          <UMKMDetailCard 
             umkm={selectedUMKM} 
             onClose={() => setSelectedUMKM(null)} 
           />

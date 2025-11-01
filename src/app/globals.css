@@ -173,11 +173,11 @@
       linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
       linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
   }
-  .custom-leaflet-popup .leaflet-popup-content-wrapper {
-  background: transparent !important;
-  box-shadow: none !important;
-  border-radius: 12px !important; 
-}
+    .custom-leaflet-popup .leaflet-popup-content-wrapper {
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 12px !important; 
+  }
   .custom-leaflet-popup .leaflet-popup-content {
     margin: 0 !important;
     padding: 0 !important;
@@ -193,5 +193,17 @@
   .leaflet-popup-content {
     width: auto !important;
     min-width: 320px; 
+  }
+  @keyframes shimmer {
+    from {
+      background-position: 0 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s linear infinite;
   }
 }

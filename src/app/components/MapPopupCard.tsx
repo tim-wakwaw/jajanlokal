@@ -4,11 +4,8 @@ import React from 'react';
 import { BackgroundGradient } from './ui/background-gradient';
 import { cn } from '@/lib/utils';
 import { Star, MapPin } from 'lucide-react';
+import MagicBorderButton from './ui/MagicBorderButton';
 
-/**
- * Tipe data yang diperlukan untuk popup card.
- * Disesuaikan dari struktur umkmData.json
- */
 interface PopupData {
   id: number;
   name: string;
@@ -19,15 +16,10 @@ interface PopupData {
 }
 
 interface MapPopupCardProps {
-  /** Objek data UMKM yang akan ditampilkan di popup */
   data: PopupData;
   className?: string;
 }
 
-/**
- * Komponen Card kustom untuk ditampilkan di dalam popup Leaflet.
- * Menggunakan BackgroundGradient untuk efek visual.
- */
 export const MapPopupCard: React.FC<MapPopupCardProps> = ({ data, className }) => {
   
   const imageUrl = data.image || '/assets/icons/pin.png';
@@ -74,12 +66,12 @@ export const MapPopupCard: React.FC<MapPopupCardProps> = ({ data, className }) =
             <span className="line-clamp-2">{data.alamat}</span>
           </div>
 
-          <button 
-            data-umkmid={data.id}
-            className="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-2 self-start"
+          <MagicBorderButton 
+            data-umkmid={data.id} 
+            className="mt-2 self-start h-8" 
           >
             Lihat Detail
-          </button>
+          </MagicBorderButton>
         </div>
       </div>
     </BackgroundGradient>
