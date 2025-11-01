@@ -6,6 +6,7 @@ import { CardContainer, CardBody, CardItem } from './ui/3d-card';
 import LazyImage from './LazyImage'; 
 import { useOutsideClick } from '@/hooks/useOutsideClick'; 
 import { IconX, IconMapPin } from '@tabler/icons-react';
+import UMKMProductCarousel from './UMKMProductCarousel';
 import { cn } from '@/lib/utils';
 
 // --- Definisi Tipe Data ---
@@ -83,7 +84,7 @@ export const UMKMCard: React.FC<UMKMCardProps> = ({ umkm, onClose, className }) 
             
             {/* Tombol Close */}
             <CardItem
-              translateZ={60}
+              translateZ={30}
               className="absolute top-4 right-4 z-20"
             >
               <button
@@ -98,7 +99,7 @@ export const UMKMCard: React.FC<UMKMCardProps> = ({ umkm, onClose, className }) 
             {/* Gambar UMKM  */}
             {umkm.image && (
               <CardItem
-                translateZ={40}
+                translateZ={20}
                 className="w-full mt-2" 
               >
                 <LazyImage
@@ -111,7 +112,7 @@ export const UMKMCard: React.FC<UMKMCardProps> = ({ umkm, onClose, className }) 
 
             {/* Judul dan Rating */}
             <CardItem
-              translateZ={50}
+              translateZ={25}
               className={cn("mt-4 w-full", !umkm.image && "mt-8")} 
             >
               <h3 className="text-xl font-bold text-foreground line-clamp-1">{umkm.name}</h3>
@@ -122,7 +123,7 @@ export const UMKMCard: React.FC<UMKMCardProps> = ({ umkm, onClose, className }) 
 
             {/* Tampilan Alamat */}
             <CardItem
-              translateZ={40}
+              translateZ={20}
               className="w-full mt-2 flex items-start gap-1.5"
             >
               <IconMapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
@@ -133,23 +134,21 @@ export const UMKMCard: React.FC<UMKMCardProps> = ({ umkm, onClose, className }) 
 
             {/* Konten Scrollable (Deskripsi, Produk) */}
             <CardItem
-              translateZ={30}
+              translateZ={15}
               className="mt-3 w-full flex-1 overflow-y-auto min-h-0 max-h-[40vh] pr-2 scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent"
             >
               {/* Deskripsi */}
               <p className="text-sm text-foreground/80 mb-3">{umkm.description}</p>
 
-              {/* Produk */}
-              {umkm.products && umkm.products.length > 0 && (
-                <div className="mb-3">
-                  <strong className="text-sm font-medium text-foreground">Produk:</strong>
-                  <ul className="list-disc list-inside text-xs mt-1 space-y-0.5 text-muted-foreground">
-                    {umkm.products.map((p, i) => (
-                      <li key={i}>{p.name} - Rp{p.price.toLocaleString()}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              {/* Produk (Diganti dengan Carousel) */}
+              <div className="mb-3">
+                <strong className="text-sm font-medium text-foreground">Produk:</strong>
+                {/* Kirimkan daftar produk ke carousel.
+                  Tambahkan margin atas (mt-2) agar ada jarak dari label.
+                */}
+                <UMKMProductCarousel products={umkm.products} className="mt-2" />
+              </div>
+              
             </CardItem>
 
             {/* Tombol Aksi (Lihat Detail) */}
