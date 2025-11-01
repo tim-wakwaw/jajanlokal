@@ -14,9 +14,21 @@
       { "user": "Andi", "text": "Harga terjangkau, cocok buat anak kos." }
     ],
     "products": [
-      { "name": "Ayam Crispy Original", "price": 15000 },
-      { "name": "Ayam Saus Pedas Manis", "price": 18000 },
-      { "name": "Paket Nasi Ayam", "price": 22000 }
+      { 
+        "name": "Ayam Crispy Original", 
+        "price": 15000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818812/ayam_krispi_original_id8war.jpg"
+      },
+      { 
+        "name": "Ayam Saus Pedas Manis", 
+        "price": 18000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818811/Ayam_Saus_Pedas_Manis_lbnvd7.jpg"
+      },
+      { 
+        "name": "Paket Nasi Ayam", 
+        "price": 22000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818818/Paket_Nasi_Ayam_acooe0.jpg"
+      }
     ]
   },
   {
@@ -34,9 +46,21 @@
       { "user": "Nina", "text": "Tempatnya sederhana tapi enak banget." }
     ],
     "products": [
-      { "name": "Ayam Geprek Kremes", "price": 16000 },
-      { "name": "Ayam Geprek Bakar", "price": 18000 },
-      { "name": "Tempe Geprek", "price": 10000 }
+      { 
+        "name": "Ayam Geprek Kremes", 
+        "price": 16000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818811/Ayam_Geprek_Kremes_lkhfn9.jpg"
+      },
+      { 
+        "name": "Ayam Geprek Bakar", 
+        "price": 18000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818811/Ayam_Geprek_Bakar_wst3we.jpg"
+      },
+      { 
+        "name": "Tempe Geprek", 
+        "price": 10000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818822/Tempe_Geprek_yszmse.jpg"
+      }
     ]
   },
   {
@@ -54,9 +78,21 @@
       { "user": "Laras", "text": "Tempat makan nostalgia, rasanya otentik." }
     ],
     "products": [
-      { "name": "Pecel Pincuk Komplit", "price": 13000 },
-      { "name": "Lontong Pecel", "price": 11000 },
-      { "name": "Rempeyek", "price": 3000 }
+      { 
+        "name": "Pecel Pincuk Komplit", 
+        "price": 13000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818818/Pecel_Pincuk_Komplit_mgthjr.jpg"
+      },
+      { 
+        "name": "Lontong Pecel", 
+        "price": 11000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818814/Lontong_Pecel_v5oraj.jpg"
+      },
+      { 
+        "name": "Rempeyek", 
+        "price": 3000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818822/Rempeyek_wssfc5.jpg"
+      }
     ]
   },
   {
@@ -74,9 +110,21 @@
       { "user": "Reza", "text": "Harga bersahabat, banyak pilihan model." }
     ],
     "products": [
-      { "name": "Kaos Oversize", "price": 95000 },
-      { "name": "Jaket Hoodie", "price": 150000 },
-      { "name": "Celana Cargo", "price": 130000 }
+      { 
+        "name": "Kaos Oversize", 
+        "price": 95000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818814/Kaos_Oversize_oiewma.jpg"
+      },
+      { 
+        "name": "Jaket Hoodie", 
+        "price": 150000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818813/Jaket_Hoodie_xeah7o.jpg"
+      },
+      { 
+        "name": "Celana Cargo", 
+        "price": 130000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818813/Celana_Cargo_z9i0sg.jpg"
+      }
     ]
   },
   {
@@ -94,9 +142,21 @@
       { "user": "Yuni", "text": "Cocok buat fashion formal maupun casual." }
     ],
     "products": [
-      { "name": "Blouse Floral", "price": 80000 },
-      { "name": "Midi Dress Polos", "price": 120000 },
-      { "name": "Cardigan Rajut", "price": 90000 }
+      { 
+        "name": "Blouse Floral", 
+        "price": 80000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818812/Blouse_Floral_pm9syp.jpg"
+      },
+      { 
+        "name": "Midi Dress Polos", 
+        "price": 120000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818814/Midi_Dress_Polos_sxsvg9.jpg"
+      },
+      { 
+        "name": "Cardigan Rajut", 
+        "price": 90000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818812/Cardigan_Rajut_s9vuo9.jpg"
+      }
     ]
   },
   {
@@ -114,9 +174,21 @@
       { "user": "Ayu", "text": "Bisa print warna dan jilid skripsi juga!" }
     ],
     "products": [
-      { "name": "Fotokopi Hitam Putih", "price": 300 },
-      { "name": "Print Warna A4", "price": 2000 },
-      { "name": "Jilid Spiral", "price": 7000 }
+      { 
+        "name": "Fotokopi Hitam Putih", 
+        "price": 300,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818813/Fotokopi_Hitam_Putih_zoak2j.jpg"
+      },
+      { 
+        "name": "Print Warna A4", 
+        "price": 2000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818818/Print_Warna_A4_rbpb5x.jpg"
+      },
+      { 
+        "name": "Jilid Spiral", 
+        "price": 7000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818813/Jilid_Spiral_yqwaad.jpg"
+      }
     ]
   },
   {
@@ -134,9 +206,21 @@
       { "user": "Mila", "text": "Dekat kampus dan buka sampai malam." }
     ],
     "products": [
-      { "name": "Piring Plastik", "price": 5000 },
-      { "name": "Kantong Plastik Jumbo", "price": 4000 },
-      { "name": "Pulpen Gel", "price": 3000 }
+      { 
+        "name": "Piring Plastik", 
+        "price": 5000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818818/Piring_Plastik_nii2sf.jpg"
+      },
+      { 
+        "name": "Kantong Plastik Jumbo", 
+        "price": 4000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818813/Kantong_Plastik_Jumbo_mws7bn.jpg"
+      },
+      { 
+        "name": "Pulpen Gel", 
+        "price": 3000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818818/Pulpen_Gel_imva4z.jpg"
+      }
     ]
   },
   {
@@ -154,9 +238,21 @@
       { "user": "Nadia", "text": "Petugas ramah, lokasi strategis." }
     ],
     "products": [
-      { "name": "Paracetamol 500mg", "price": 5000 },
-      { "name": "Vitamin C 1000mg", "price": 8000 },
-      { "name": "Obat Batuk Cair", "price": 15000 }
+      { 
+        "name": "Paracetamol 500mg", 
+        "price": 5000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818817/Paracetamol_500mg_zuvrkh.jpg"
+      },
+      { 
+        "name": "Vitamin C 1000mg", 
+        "price": 8000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818822/Vitamin_C_1000mg_pdbueh.jpg"
+      },
+      { 
+        "name": "Obat Batuk Cair", 
+        "price": 15000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818817/Obat_Batuk_Cair_ho5gsf.jpg"
+      }
     ]
   },
   {
@@ -174,9 +270,21 @@
       { "user": "Citra", "text": "Pesan bouquet ulang tahun, hasilnya cantik!" }
     ],
     "products": [
-      { "name": "Bouquet Mawar", "price": 150000 },
-      { "name": "Bunga Meja", "price": 120000 },
-      { "name": "Bucket Graduation", "price": 180000 }
+      { 
+        "name": "Bouquet Mawar", 
+        "price": 150000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818811/Bouquet_Mawar_iy7vgh.jpg"
+      },
+      { 
+        "name": "Bunga Meja", 
+        "price": 120000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818812/Bunga_Meja_d6ailf.jpg"
+      },
+      { 
+        "name": "Bucket Graduation", 
+        "price": 180000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818812/Bucket_Graduation_tqtd6w.jpg"
+      }
     ]
   },
   {
@@ -194,9 +302,21 @@
       { "user": "Rara", "text": "Bersih dan tertata rapi." }
     ],
     "products": [
-      { "name": "Beras 5kg", "price": 68000 },
-      { "name": "Minyak Goreng 1L", "price": 18000 },
-      { "name": "Mi Instan", "price": 3500 }
+      { 
+        "name": "Beras 5kg", 
+        "price": 68000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818812/Beras_5kg_ysrlac.jpg"
+      },
+      { 
+        "name": "Minyak Goreng 1L", 
+        "price": 18000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818814/Minyak_Goreng_1L_ltvdap.jpg"
+      },
+      { 
+        "name": "Mi Instan", 
+        "price": 3500,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818814/Mi_Instan_kjbkb5.jpg"
+      }
     ]
   },
   {
@@ -214,9 +334,21 @@
       { "user": "Cindy", "text": "Tempatnya nyaman buat makan bareng teman." }
     ],
     "products": [
-      { "name": "Wonton Original", "price": 20000 },
-      { "name": "Ramen Ayam Pedas", "price": 28000 },
-      { "name": "Teh Oolong Dingin", "price": 10000 }
+      { 
+        "name": "Wonton Original", 
+        "price": 20000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818823/Wonton_Original_rcvqvi.jpg"
+      },
+      { 
+        "name": "Ramen Ayam Pedas", 
+        "price": 28000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818819/Ramen_Ayam_Pedas_b6u2p9.jpg"
+      },
+      { 
+        "name": "Teh Oolong Dingin", 
+        "price": 10000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818822/Teh_Oolong_Dingin_qhp1ah.jpg"
+      }
     ]
   },
   {
@@ -234,9 +366,21 @@
       { "user": "Eko", "text": "Harga lebih murah dibanding toko lain di sekitar sini." }
     ],
     "products": [
-      { "name": "Semen 40kg", "price": 65000 },
-      { "name": "Kabel Listrik 10m", "price": 35000 },
-      { "name": "Cat Tembok 1L", "price": 70000 }
+      { 
+        "name": "Semen 40kg", 
+        "price": 65000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818821/Semen_40kg_znh0jl.jpg"
+      },
+      { 
+        "name": "Kabel Listrik 10m", 
+        "price": 35000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818813/Kabel_Listrik_10m_v3oqor.png"
+      },
+      { 
+        "name": "Cat Tembok 1L", 
+        "price": 70000,
+        "image": "https://res.cloudinary.com/deady5xap/image/upload/v1761818813/Cat_Tembok_1L_yc5o9s.png"
+      }
     ]
   }
 ]

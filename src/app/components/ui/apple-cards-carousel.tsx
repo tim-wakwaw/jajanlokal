@@ -351,20 +351,23 @@ export const Card = ({
                             className="h-full w-full object-cover"
                         />
                     </CardItem>
-                    <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                    <div className="pointer-events-none absolute inset-0 z-10 bg-linear-to-t from-black/50 via-transparent to-transparent" />
                     <CardItem
                         translateZ={40}
-                        className="relative z-20 p-4 md:p-5"
+                        className="relative z-20 p-4 pb-8 md:p-6 md:pb-10"
                     >
                         <motion.p
                             layoutId={layout ? `category-${card.id}` : undefined}
-                            className="text-xs font-medium text-white/80 md:text-sm"
+                            className="text-xs font-medium text-white/80 md:text-sm mb-2"
                         >
                             {card.category}
                         </motion.p>
                         <motion.p
                             layoutId={layout ? `title-${card.id}` : undefined}
-                            className="mt-1 text-base font-semibold text-balance text-white md:text-xl"
+                            className="text-base font-semibold text-white md:text-xl leading-normal overflow-wrap-break-word"
+                            style={{ 
+                                textShadow: '0 2px 4px rgba(0,0,0,0.8)'
+                            }}
                         >
                             {card.title}
                         </motion.p>

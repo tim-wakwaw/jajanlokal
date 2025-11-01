@@ -13,8 +13,7 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import UMKMSidebar from "../components/UMKMSidebar";
-import LazyImage from "../components/LazyImage";
-
+import UMKMCard from "../components/UMKMCard"; 
 
 // --- Tipe Data ---
 
@@ -158,7 +157,7 @@ export default function PetaUMKM() {
           // Preload images setelah data dimuat
           data.forEach((umkm: UMKM) => {
             if (umkm.image) {
-              const img = new Image();
+              const img = new Image(); 
               img.src = umkm.image;
             }
           });
@@ -261,9 +260,9 @@ export default function PetaUMKM() {
       markersLayerGroup.addLayer(marker);
     });
 
-  }, [umkmList, search, category, isLoadingData]);
+  }, [umkmList, search, category, isLoadingData]); 
 
-    /**
+   /**
    * Fungsi untuk mendapatkan lokasi pengguna saat ini, menampilkan marker
    * lokasi di peta, dan menggeser peta ke lokasi tersebut.
    */
@@ -289,11 +288,11 @@ export default function PetaUMKM() {
 
     currentMap.once('locationfound', (e) => {
       console.log("Lokasi ditemukan:", e.latlng);
-      const radius = e.accuracy / 2;
+      const radius = 1500;
       if (userIconRef.current) {
         userLocationMarkerRef.current = L.marker(e.latlng, { icon: userIconRef.current })
           .addTo(currentMap)
-          .bindPopup(`Lokasimu (akurasi 150m)`).openPopup();
+          .bindPopup(`Lokasimu`).openPopup();
       }
       userLocationCircleRef.current = L.circle(e.latlng, radius).addTo(currentMap);
     });
@@ -330,18 +329,7 @@ export default function PetaUMKM() {
       setSelectedUMKM(umkm);
     }
   };
-  // Belum tau mau pake apa ga
-  // useOutsideClick(sidebarRef, (event: { target: Element; }) => {
-  //     if (isSidebarOpen) {
-  //       const targetElement = event.target as Element;
-  //       const dockButton = targetElement.closest('button[aria-label="Toggle Sidebar"], a[aria-label="Toggle Sidebar"]');
-
-  //       if (!dockButton) {
-  //          setIsSidebarOpen(false);
-  //       }
-  //     }
-  // });
-
+ 
   if (!isClient) return null;
 
   return (
@@ -355,7 +343,7 @@ export default function PetaUMKM() {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: "-100%", opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="absolute top-0 left-0 h-full w-124 bg-card border-r border-border overflow-hidden z-450 shadow-lg"
+            className="absolute top-0 left-0 h-full w-80 bg-card border-r border-border overflow-hidden z-450 shadow-lg" // Lebar disesuaikan
           >
             <UMKMSidebar
               items={filteredUMKMList}
@@ -419,46 +407,10 @@ export default function PetaUMKM() {
 
       <AnimatePresence>
         {selectedUMKM && (
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-[calc(4rem+1.5rem)] left-1/2 -translate-x-1/2 z-900 bg-card border rounded-lg shadow-lg w-80 text-sm max-h-[50vh] overflow-y-auto"
-          >
-            {/* Gambar UMKM */}
-            {selectedUMKM.image && (
-              <LazyImage
-                src={selectedUMKM.image}
-                alt={selectedUMKM.name}
-                className="w-full h-32 mb-3 rounded-t-lg"
-              />
-            )}
-            
-            <div className="p-3">
-              <div className="flex justify-between items-start">
-                <div>
-                  <div className="font-semibold text-lg mb-1">{selectedUMKM.name}</div>
-                  <div className="text-xs text-muted-foreground mb-2"> {selectedUMKM.category} • ⭐ {selectedUMKM.rating} </div>
-                </div>
-                <button onClick={() => setSelectedUMKM(null)} className="p-1 rounded-full hover:bg-muted -mt-1 -mr-1"> <IconX className="h-4 w-4 text-muted-foreground"/> </button>
-              </div>
-              <p className="text-sm mb-2">{selectedUMKM.description}</p>
-              <div className="mb-2">
-                <strong className="text-sm">Produk:</strong>
-                <ul className="list-disc list-inside text-xs mt-1 space-y-0.5">
-                  {selectedUMKM.products.map((p, i) => ( <li key={i}>{p.name} - Rp{p.price.toLocaleString()}</li> ))}
-                </ul>
-              </div>
-              {selectedUMKM.comments && selectedUMKM.comments.length > 0 && (
-                  <div>
-                  <strong className="text-sm">Komentar:</strong>
-                  <ul className="list-disc list-inside text-xs mt-1 space-y-0.5">
-                      {selectedUMKM.comments.map((c, i) => ( <li key={i}><b>{c.user}:</b> {c.text}</li> ))}
-                  </ul>
-                  </div>
-              )}
-            </div>
-          </motion.div>
+          <UMKMCard 
+            umkm={selectedUMKM} 
+            onClose={() => setSelectedUMKM(null)} 
+          />
         )}
       </AnimatePresence>
 

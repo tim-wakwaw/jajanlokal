@@ -15,7 +15,7 @@ export default function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <div className="fixed right-6 top-6 z-50 h-12 w-12 rounded-full bg-neutral-200 dark:bg-neutral-800" />
+      <div className="fixed right-6 top-20 z-40 h-12 w-12 rounded-full bg-neutral-200 dark:bg-neutral-800 lg:right-6 lg:top-6" />
     );
   }
 
@@ -24,7 +24,7 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={() => setTheme(currentTheme === "dark" ? "light" : "dark")}
-      className="fixed right-6 top-6 z-50 rounded-full bg-neutral-900 p-3 text-neutral-100 shadow-lg transition-all hover:scale-110 hover:shadow-xl dark:bg-neutral-100 dark:text-neutral-900"
+      className="fixed right-6 top-20 z-40 rounded-full bg-neutral-900 p-3 text-neutral-100 shadow-lg transition-all hover:scale-110 hover:shadow-xl dark:bg-neutral-100 dark:text-neutral-900 lg:right-6 lg:top-6 lg:z-50"
       aria-label="Toggle theme"
     >
       {currentTheme === "dark" ? (
