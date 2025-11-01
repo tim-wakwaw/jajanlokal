@@ -1,8 +1,11 @@
+// src/app/layout.tsx
+
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "./providers/ThemeProviders";
 import Header from "./header";
+import Footer from "./components/Footer"; // <-- 1. IMPORT FOOTER
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -54,10 +57,15 @@ export default function RootLayout({
         <ThemeProvider>
           {/* Header dengan Navbar untuk desktop dan mobile */}
           <Header />
+
           {/* Konten halaman diberi padding top agar tidak ketutup navbar */}
           <div className="pt-14">
             {children}
           </div>
+
+          {/* 2. TAMBAHKAN FOOTER DI SINI */}
+          <Footer />
+
         </ThemeProvider>
       </body>
     </html>
