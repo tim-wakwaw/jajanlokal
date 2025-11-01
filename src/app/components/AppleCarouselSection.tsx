@@ -15,7 +15,6 @@ interface UmkmData {
     description: string;
     products: { name: string; price: number }[];
     rating: number;
-    image?: string; // <-- Pastikan 'image' ada di sini
 }
 
 const ProductDetailContent = ({ description, products, umkmId }: { description: string, products?: { name: string; price: number }[], umkmId: number }) => (
@@ -64,7 +63,7 @@ export default function AppleCarouselSection() {
                     id: umkm.id,
                     category: `${umkm.category} • ⭐ ${umkm.rating}`,
                     title: umkm.name,
-                    src: umkm.image || getImagePath(umkm.category), // Gunakan gambar dari JSON atau fallback
+                    src: umkm.image || "/assets/icons/default-umkm.png", // Gunakan gambar dari JSON atau fallback
                     content: <ProductDetailContent description={umkm.description} products={umkm.products} umkmId={umkm.id} />
                 }));
 
