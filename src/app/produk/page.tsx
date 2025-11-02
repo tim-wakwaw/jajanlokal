@@ -2,30 +2,21 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "motion/react";
-import ProductCard from "@/app/components/ProductCard";
+import EnhancedProductCard from "@/app/components/EnhancedProductCard";
 import ProductFilter from "@/app/components/ProductFilter";
+import { supabase } from "../../lib/supabase";
 
-interface Product {
+interface ProductWithUmkm {
+  id: string;
   name: string;
   price: number;
-  image?: string;
-}
-
-interface UmkmData {
-  id: number;
-  name: string;
-  image?: string;
-  category: string;
-  description: string;
-  products: Product[];
-  rating: number;
-}
-
-interface ProductWithUmkm extends Product {
+  image_url?: string;
+  stock: number;
+  is_available: boolean;
+  description?: string;
   umkmName: string;
-  umkmId: number;
+  umkmId: string;
   umkmCategory: string;
-  umkmRating: number;
 }
 
 export default function ProdukPage() {
@@ -36,32 +27,58 @@ export default function ProdukPage() {
   const [sortBy, setSortBy] = useState<string>("name");
 
   useEffect(() => {
-    fetch("/data/umkmData.json")
-      .then((response) => response.json())
-      .then((data: UmkmData[]) => {
-        // Flatten semua produk dari semua UMKM
-        const products: ProductWithUmkm[] = [];
-        
-        data.forEach((umkm) => {
-          umkm.products.forEach((product) => {
-            products.push({
-              ...product,
-              umkmName: umkm.name,
-              umkmId: umkm.id,
-              umkmCategory: umkm.category,
-              umkmRating: umkm.rating
-            });
-          });
-        });
-
-        setAllProducts(products);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error loading products:", error);
-        setLoading(false);
-      });
+    fetchProducts();
   }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('product_requests')
+        .select(`
+          id,
+          name,
+          price,
+          image_url,
+          stock,
+          is_available,
+          description,
+          umkm_requests!inner(
+            id,
+            name,
+            category
+          )
+        `)
+        .eq('status', 'approved')
+        .eq('is_available', true)
+
+      if (error) {
+        console.error('Error fetching products:', error)
+        setAllProducts([])
+        return
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const formattedProducts: ProductWithUmkm[] = data.map((product: any) => ({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image_url: product.image_url,
+        stock: product.stock || 0,
+        is_available: product.is_available,
+        description: product.description,
+        umkmName: product.umkm_requests.name,
+        umkmId: product.umkm_requests.id,
+        umkmCategory: product.umkm_requests.category,
+      }))
+
+      setAllProducts(formattedProducts)
+    } catch (error) {
+      console.error('Error loading products:', error)
+      setAllProducts([])
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // Filter dan search logic menggunakan useMemo
   const filteredProducts = useMemo(() => {
@@ -89,8 +106,8 @@ export default function ProdukPage() {
           return a.price - b.price;
         case "price-high":
           return b.price - a.price;
-        case "rating":
-          return b.umkmRating - a.umkmRating;
+        case "stock":
+          return b.stock - a.stock;
         default:
           return 0;
       }
@@ -212,15 +229,26 @@ export default function ProdukPage() {
             >
               {filteredProducts.map((product, index) => (
                 <motion.div
-                  key={`${product.umkmId}-${index}`}
+                  key={product.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ 
                     duration: 0.5, 
-                    delay: 0.1 * (index % 8) // Animasi bertahap per baris
+                    delay: 0.1 * (index % 8)
                   }}
                 >
-                  <ProductCard product={product} />
+                  <EnhancedProductCard
+                    id={product.id}
+                    name={product.name}
+                    price={product.price}
+                    image={product.image_url}
+                    stock={product.stock}
+                    umkmName={product.umkmName}
+                    umkmId={product.umkmId}
+                    category={product.umkmCategory}
+                    description={product.description}
+                    isAvailable={product.is_available}
+                  />
                 </motion.div>
               ))}
             </motion.div>
@@ -237,16 +265,23 @@ export default function ProdukPage() {
                   Produk tidak ditemukan
                 </h3>
                 <p className="text-neutral-500 dark:text-neutral-400 mb-6">
-                  Coba ubah filter atau kata kunci pencarian Anda
+                  {allProducts.length === 0 
+                    ? "Belum ada produk. Silakan import data UMKM terlebih dahulu."
+                    : "Coba ubah filter atau kata kunci pencarian Anda"
+                  }
                 </p>
                 <button
                   onClick={() => {
-                    setSelectedCategory("all");
-                    setSearchQuery("");
+                    if (allProducts.length === 0) {
+                      window.location.href = '/'
+                    } else {
+                      setSelectedCategory("all");
+                      setSearchQuery("");
+                    }
                   }}
                   className="px-6 py-3 bg-linear-to-r from-blue-500 to-purple-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-200 transform hover:scale-105"
                 >
-                  Reset Filter
+                  {allProducts.length === 0 ? "Ke Halaman Utama" : "Reset Filter"}
                 </button>
               </div>
             </motion.div>
