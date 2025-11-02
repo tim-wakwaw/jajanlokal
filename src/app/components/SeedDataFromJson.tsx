@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { showSuccessAlert, showErrorAlert } from '../../lib/sweetalert'
-import { useAuth } from '../../contexts/AuthContext'
+import { useAuth } from '../../contexts/OptimizedAuthContext'
 import MagicBorderButton from './ui/MagicBorderButton'
 
 // Type definitions

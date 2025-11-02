@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ShoppingCart, User, Menu, X, Settings } from 'lucide-react'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from '@/contexts/OptimizedAuthContext'
 import { useCart } from '@/contexts/CartContext'
 import { CartSidebar } from './CartSidebar'
 

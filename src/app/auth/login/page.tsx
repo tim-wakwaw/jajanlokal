@@ -2,7 +2,7 @@
 
 import { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { useAuth } from '../../../contexts/AuthContext'
+import { useAuth } from '../../../contexts/OptimizedAuthContext'
 import { showSuccessAlert } from '../../../lib/sweetalert'
 import Link from 'next/link'
 

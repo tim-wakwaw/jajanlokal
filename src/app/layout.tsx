@@ -4,11 +4,10 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "./providers/ThemeProviders";
-import { AuthProvider } from "../contexts/AuthContext"; 
-import { CartProvider } from "../contexts/CartContext"; 
 import Header from "./header";
 import Footer from "./components/Footer";
 import { FloatingActionButton } from "./components/FloatingActionButton";
+import Providers from "./components/Providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -58,23 +57,21 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <ThemeProvider>
-          <AuthProvider>
-            <CartProvider> {/* ADD CART PROVIDER */}
-              {/* Header dengan Navbar untuk desktop dan mobile */}
-              <Header />
-
-              {/* Konten halaman diberi padding top agar tidak ketutup navbar */}
-              <div className="pt-14">
-                {children}
-              </div>
-
-              {/* Floating Action Button for cart, user, logout */}
-              <FloatingActionButton />
-
-              {/* 2. TAMBAHKAN FOOTER DI SINI */}
-              <Footer />
-            </CartProvider> {/* ADD CART PROVIDER */}
-          </AuthProvider> {/* ADD THIS WRAPPER */}
+          <Providers>
+            {/* Header dengan Navbar untuk desktop dan mobile */}
+            <Header />
+            
+            {/* Main content area */}
+            <main className="relative">
+              {children}
+            </main>
+            
+            {/* Footer */}
+            <Footer />
+            
+            {/* Floating Action Button untuk Cart dan Admin */}
+            <FloatingActionButton />
+          </Providers>
         </ThemeProvider>
       </body>
     </html>

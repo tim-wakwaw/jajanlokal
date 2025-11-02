@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
-import { useAuth } from './AuthContext'
+import { useAuth } from './OptimizedAuthContext'
 import { supabase } from '../lib/supabase'
 import { showErrorAlert, showToast } from '../lib/sweetalert'
 

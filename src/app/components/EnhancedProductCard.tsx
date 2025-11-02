@@ -2,7 +2,7 @@
 
 import { useState, memo } from 'react'
 import Image from 'next/image'
-import { useAuth } from '../../contexts/AuthContext'
+import { useAuth } from '../../contexts/OptimizedAuthContext'
 import { useCart } from '../../contexts/CartContext'
 import { showLoginRequiredAlert, showToast, showErrorAlert } from '../../lib/sweetalert'
 
