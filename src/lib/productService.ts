@@ -1,5 +1,46 @@
 import { supabase } from './supabase'
 
+// Type definitions
+interface UMKMRequest {
+  id: string
+  name: string
+  category: string
+  description?: string
+  address?: string
+  lat?: number
+  lng?: number
+  image_url?: string
+}
+
+interface ProductRequest {
+  id: string
+  name: string
+  price: number
+  description?: string
+  image_url?: string
+  stock: number
+  is_available: boolean
+  status: string
+  created_at: string
+  umkm_requests: UMKMRequest
+}
+
+interface FormattedProduct {
+  id: string
+  name: string
+  price: number
+  description?: string
+  image?: string
+  stock: number
+  isAvailable: boolean
+  umkmId: string
+  umkmName: string
+  category: string
+  umkmImage?: string
+  umkmRating: number
+  createdAt: string
+}
+
 // Service untuk manage products dari JSON data
 export class ProductService {
   static async seedFromJSON() {
@@ -138,8 +179,8 @@ export class ProductService {
 
       if (error) throw error
 
-      // Format data - cast to any to avoid TypeScript issues for now
-      const formattedProducts = (data as any[]).map((item: any) => ({
+      // Format data
+      const formattedProducts: FormattedProduct[] = (data as unknown as ProductRequest[]).map((item: ProductRequest) => ({
         id: item.id,
         name: item.name,
         price: item.price,
@@ -192,8 +233,8 @@ export class ProductService {
 
       if (error) throw error
 
-      // Cast to any to avoid TypeScript issues
-      const product = data as any
+      // Type assertion untuk product data
+      const product = data as unknown as ProductRequest
 
       const formattedProduct = {
         id: product.id,
@@ -236,7 +277,8 @@ export class ProductService {
           filter: `id=eq.${productId}`
         },
         (payload) => {
-          callback((payload.new as any).stock)
+          const newData = payload.new as { stock: number }
+          callback(newData.stock)
         }
       )
       .subscribe()

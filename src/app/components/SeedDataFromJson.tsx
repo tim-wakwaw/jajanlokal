@@ -6,6 +6,27 @@ import { showSuccessAlert, showErrorAlert } from '../../lib/sweetalert'
 import { useAuth } from '../../contexts/AuthContext'
 import MagicBorderButton from './ui/MagicBorderButton'
 
+// Type definitions
+interface Product {
+  name: string
+  price: number
+  image?: string
+  description?: string
+  stock?: number
+}
+
+interface UMKMData {
+  id: number
+  name: string
+  category: string
+  description?: string
+  alamat?: string
+  lat?: number
+  lng?: number
+  image?: string
+  products?: Product[]
+}
+
 export default function SeedDataFromJson() {
   const [loading, setLoading] = useState(false)
   const { user } = useAuth()
@@ -22,7 +43,7 @@ export default function SeedDataFromJson() {
       console.log('🚀 Starting data import from JSON...')
       
       const response = await fetch('/data/umkmData.json')
-      const umkmData = await response.json()
+      const umkmData: UMKMData[] = await response.json()
       
       console.log(`📦 Found ${umkmData.length} UMKM to import`)
       
@@ -64,7 +85,7 @@ export default function SeedDataFromJson() {
         successCount++
 
         if (umkm.products && umkm.products.length > 0) {
-          const productsToInsert = umkm.products.map((product, index) => {
+          const productsToInsert = umkm.products.map((product: Product, index: number) => {
             const productUuid = `00000000-0000-0001-0000-${(umkm.id * 1000 + index).toString().padStart(12, '0')}`
             
             return {
