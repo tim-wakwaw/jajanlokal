@@ -43,6 +43,11 @@ interface FormattedProduct {
 
 // Service untuk manage products dari JSON data
 export class ProductService {
+  // Simple cache untuk categories
+  private static categoriesCache: string[] | null = null;
+  private static cacheTimestamp: number = 0;
+  private static CACHE_DURATION = 5 * 60 * 1000; // 5 menit
+
   static async seedFromJSON() {
     try {
       // Fetch JSON data
@@ -200,6 +205,136 @@ export class ProductService {
 
     } catch (error) {
       console.error('Error fetching products:', error)
+      return { success: false, error: error }
+    }
+  }
+
+  // Optimized method untuk pagination 
+  static async getProductsPaginated(options: {
+    page?: number
+    limit?: number
+    category?: string
+    search?: string
+    sortBy?: string
+  } = {}) {
+    try {
+      const { 
+        page = 1, 
+        limit = 12, 
+        category, 
+        search, 
+        sortBy = 'created_at' 
+      } = options
+
+      const offset = (page - 1) * limit
+
+      let query = supabase
+        .from('product_requests')
+        .select(`
+          id,
+          name,
+          price,
+          image_url,
+          stock,
+          is_available,
+          description,
+          created_at,
+          umkm_requests!inner(
+            id,
+            name,
+            category,
+            image_url
+          )
+        `, { count: 'exact' })
+        .eq('status', 'approved')
+        .eq('is_available', true)
+
+      // Apply filters
+      if (category && category !== 'all') {
+        query = query.eq('umkm_requests.category', category)
+      }
+
+      if (search) {
+        query = query.or(`name.ilike.%${search}%,umkm_requests.name.ilike.%${search}%`)
+      }
+
+      // Apply sorting dengan order sekunder by id untuk konsistensi
+      const orderColumn = sortBy === 'price-low' || sortBy === 'price-high' ? 'price' : 
+                          sortBy === 'stock' ? 'stock' : 'created_at'
+      const ascending = sortBy === 'price-low' ? true : 
+                       sortBy === 'name' ? true : false
+
+      query = query
+        .order(orderColumn, { ascending })
+        .order('id', { ascending: true }) // Secondary sort by id untuk konsistensi
+        .range(offset, offset + limit - 1)
+
+      const { data, error, count } = await query
+
+      if (error) throw error
+
+      // Format data dan remove duplicates
+      const formattedProducts: FormattedProduct[] = (data as unknown as ProductRequest[]).map((item: ProductRequest) => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        description: item.description,
+        image: item.image_url,
+        stock: item.stock,
+        isAvailable: item.is_available,
+        umkmId: item.umkm_requests.id,
+        umkmName: item.umkm_requests.name,
+        category: item.umkm_requests.category,
+        umkmImage: item.umkm_requests.image_url,
+        umkmRating: 4.5,
+        createdAt: item.created_at
+      }))
+
+      // Remove any potential duplicates based on ID
+      const uniqueProducts = formattedProducts.filter((product, index, arr) => 
+        arr.findIndex(p => p.id === product.id) === index
+      )
+
+      return { 
+        success: true, 
+        data: uniqueProducts,
+        totalCount: count || 0,
+        currentPage: page,
+        totalPages: Math.ceil((count || 0) / limit),
+        hasNextPage: (count || 0) > offset + limit
+      }
+
+    } catch (error) {
+      console.error('Error fetching products:', error)
+      return { success: false, error: error }
+    }
+  }
+
+  // Cache untuk kategori dengan optimasi
+  static async getCategories() {
+    try {
+      // Check cache first
+      const now = Date.now();
+      if (this.categoriesCache && (now - this.cacheTimestamp) < this.CACHE_DURATION) {
+        return { success: true, data: this.categoriesCache };
+      }
+
+      const { data, error } = await supabase
+        .from('umkm_requests')
+        .select('category')
+        .eq('status', 'approved')
+
+      if (error) throw error
+
+      const categories = [...new Set(data.map(item => item.category))];
+      
+      // Update cache
+      this.categoriesCache = categories;
+      this.cacheTimestamp = now;
+      
+      return { success: true, data: categories }
+    } catch (error) {
+      console.error('Error fetching categories:', error)
       return { success: false, error: error }
     }
   }

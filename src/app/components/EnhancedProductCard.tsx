@@ -1,7 +1,6 @@
 'use client'
 
-import { useState } from 'react'
-import { motion } from 'motion/react'
+import { useState, memo } from 'react'
 import Image from 'next/image'
 import { useAuth } from '../../contexts/AuthContext'
 import { useCart } from '../../contexts/CartContext'
@@ -20,7 +19,7 @@ interface EnhancedProductCardProps {
   isAvailable?: boolean
 }
 
-export default function EnhancedProductCard({
+const EnhancedProductCard = memo(function EnhancedProductCard({
   id,
   name,
   price,
@@ -73,14 +72,7 @@ export default function EnhancedProductCard({
   const isOutOfStock = stock === 0 || !isAvailable
 
   return (
-    <motion.div
-      className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 group"
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 group">
       {/* Product Image */}
       <div className="relative h-48 overflow-hidden bg-gray-100 dark:bg-gray-700">
         {image ? (
@@ -90,6 +82,7 @@ export default function EnhancedProductCard({
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            loading="lazy"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -99,129 +92,104 @@ export default function EnhancedProductCard({
           </div>
         )}
         
-        {/* Stock Badge */}
-        <div className="absolute top-3 right-3">
-          {isOutOfStock ? (
-            <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-medium">
-              Habis
+        {/* Stock badge - hanya jika stok rendah */}
+        {stock > 0 && stock <= 5 && (
+          <div className="absolute top-3 right-3 bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+            Stok: {stock}
+          </div>
+        )}
+        
+        {/* Out of stock overlay */}
+        {isOutOfStock && (
+          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+              Stok Habis
             </span>
-          ) : stock < 10 ? (
-            <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full font-medium">
-              Sisa {stock}
-            </span>
-          ) : (
-            <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium">
-              Tersedia
-            </span>
-          )}
-        </div>
-
-        {/* Category Badge */}
-        <div className="absolute top-3 left-3">
-          <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-medium">
-            {category}
-          </span>
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Product Info */}
-      <div className="p-4">
-        {/* UMKM Name */}
-        <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
-          {umkmName}
+      <div className="p-5">
+        {/* Category */}
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-medium text-blue-600 bg-blue-100 dark:bg-blue-900 dark:text-blue-300 px-2 py-1 rounded-full">
+            {category}
+          </span>
         </div>
 
-        {/* Product Name */}
-        <h3 className="font-semibold text-lg text-gray-900 dark:text-white mb-2 line-clamp-2">
+        {/* Product name */}
+        <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2 line-clamp-2 min-h-14">
           {name}
         </h3>
 
-        {/* Description */}
+        {/* UMKM name */}
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+          {umkmName}
+        </p>
+
+        {/* Description - hanya jika ada */}
         {description && (
-          <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">
             {description}
           </p>
         )}
 
         {/* Price */}
-        <div className="text-xl font-bold text-blue-600 dark:text-blue-400 mb-4">
-          {formatPrice(price)}
-        </div>
-
-        {/* Stock Info */}
-        <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          <span className="inline-flex items-center">
-            <div className={`w-2 h-2 rounded-full mr-2 ${
-              isOutOfStock ? 'bg-red-500' : stock < 10 ? 'bg-orange-500' : 'bg-green-500'
-            }`}></div>
-            {isOutOfStock ? 'Stok habis' : `Stok: ${stock} tersedia`}
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-2xl font-bold text-green-600 dark:text-green-400">
+            {formatPrice(price)}
           </span>
         </div>
 
-        {/* Quantity & Buy Section */}
-        {!isOutOfStock && (
-          <div className="space-y-3">
-            {/* Quantity Selector */}
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Jumlah:
+        {/* Quantity dan Buy button */}
+        <div className="flex items-center gap-3">
+          {!isOutOfStock && (
+            <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg">
+              <button
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                className="px-3 py-1 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                disabled={loading}
+              >
+                -
+              </button>
+              <span className="px-3 py-1 text-center min-w-12 border-x border-gray-300 dark:border-gray-600">
+                {quantity}
               </span>
-              <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="px-3 py-1 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-l-lg transition-colors"
-                  disabled={quantity <= 1}
-                >
-                  -
-                </button>
-                <span className="px-3 py-1 text-center min-w-10 text-gray-900 dark:text-white">
-                  {quantity}
-                </span>
-                <button
-                  onClick={() => setQuantity(Math.min(stock, quantity + 1))}
-                  className="px-3 py-1 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-r-lg transition-colors"
-                  disabled={quantity >= stock}
-                >
-                  +
-                </button>
-              </div>
+              <button
+                onClick={() => setQuantity(Math.min(stock, quantity + 1))}
+                className="px-3 py-1 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                disabled={loading || quantity >= stock}
+              >
+                +
+              </button>
             </div>
+          )}
 
-            {/* Buy Button */}
-            <button
-              onClick={handleBuyClick}
-              disabled={loading || isOutOfStock}
-              className={`w-full py-3 px-4 rounded-lg font-semibold transition-all duration-200 ${
-                loading
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800'
-              } text-white shadow-md hover:shadow-lg transform hover:-translate-y-0.5`}
-            >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Menambahkan...
-                </div>
-              ) : (
-                `Tambah ke Keranjang`
-              )}
-            </button>
-          </div>
-        )}
-
-        {/* Out of Stock Button */}
-        {isOutOfStock && (
           <button
-            disabled
-            className="w-full py-3 px-4 rounded-lg font-semibold bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+            onClick={handleBuyClick}
+            disabled={isOutOfStock || loading}
+            className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all duration-200 ${
+              isOutOfStock
+                ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed'
+                : 'bg-linear-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white hover:shadow-lg transform hover:scale-105'
+            }`}
           >
-            Stok Habis
+            {loading ? (
+              <div className="flex items-center justify-center">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                Loading...
+              </div>
+            ) : isOutOfStock ? (
+              'Stok Habis'
+            ) : (
+              'Tambah'
+            )}
           </button>
-        )}
+        </div>
       </div>
-    </motion.div>
+    </div>
   )
-}
+})
+
+export default EnhancedProductCard
