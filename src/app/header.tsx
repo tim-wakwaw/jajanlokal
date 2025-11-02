@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
 import {
   Navbar,
   NavBody,
@@ -19,11 +20,12 @@ const navItems = [
   { name: "Peta UMKM", link: "/peta-umkm" },
   { name: "About", link: "/about" },
   { name: "Blog", link: "/blog" },
-  { name: "Kontak", link: "/kontak" },
+  { name: "FAQ", link: "/faq" },
 ];
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, profile, loading, signOut } = useAuth();
 
   const handleMobileMenuToggle = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -33,6 +35,29 @@ export default function Header() {
     setIsMobileMenuOpen(false);
   };
 
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <Navbar>
+          <NavBody>
+            <NavbarLogo />
+            <NavItems items={navItems} />
+            <div className="w-20 h-8 bg-gray-200 animate-pulse rounded"></div>
+          </NavBody>
+        </Navbar>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed top-0 left-0 right-0 z-50">
       <Navbar>
@@ -40,9 +65,43 @@ export default function Header() {
         <NavBody>
           <NavbarLogo />
           <NavItems items={navItems} />
-          <NavbarButton href="/daftar" variant="primary">
-            Daftar
-          </NavbarButton>
+          
+          {/* Auth Buttons */}
+          {user ? (
+            <div className="flex items-center gap-3">
+              {profile?.role === 'admin' || profile?.role === 'super_admin' ? (
+                <NavbarButton href="/admin/dashboard" variant="secondary">
+                  Admin
+                </NavbarButton>
+              ) : null}
+              
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                  {profile?.full_name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase()}
+                </div>
+                <span className="text-sm font-medium hidden md:block">
+                  {profile?.full_name || user.email?.split('@')[0]}
+                </span>
+              </div>
+              
+              <NavbarButton 
+                as="button"
+                onClick={handleSignOut} 
+                variant="secondary"
+              >
+                Keluar
+              </NavbarButton>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <NavbarButton href="/auth/login" variant="secondary">
+                Masuk
+              </NavbarButton>
+              <NavbarButton href="/auth/register" variant="primary">
+                Daftar
+              </NavbarButton>
+            </div>
+          )}
         </NavBody>
 
         {/* Mobile Navbar */}
@@ -69,10 +128,46 @@ export default function Header() {
                 {item.name}
               </a>
             ))}
-            <div className="mt-4 w-full">
-              <NavbarButton href="/daftar" variant="primary" className="w-full">
-                Daftar
-              </NavbarButton>
+            
+            {/* Mobile Auth */}
+            <div className="border-t pt-4 mt-4">
+              {user ? (
+                <>
+                  <div className="px-4 py-2 text-sm text-gray-500">
+                    {profile?.full_name || user.email}
+                  </div>
+                  
+                  {profile?.role === 'admin' || profile?.role === 'super_admin' ? (
+                    <a
+                      href="/admin/dashboard"
+                      className="block px-4 py-2 text-sm text-blue-600 hover:bg-gray-100"
+                      onClick={handleMobileItemClick}
+                    >
+                      Admin Dashboard
+                    </a>
+                  ) : null}
+                  <button
+                    onClick={() => {
+                      handleSignOut();
+                      handleMobileItemClick();
+                    }}
+                    className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                  >
+                    Keluar
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="space-y-2 px-4">
+                    <NavbarButton href="/auth/login" variant="secondary" className="w-full">
+                      Masuk
+                    </NavbarButton>
+                    <NavbarButton href="/auth/register" variant="primary" className="w-full">
+                      Daftar
+                    </NavbarButton>
+                  </div>
+                </>
+              )}
             </div>
           </MobileNavMenu>
         </MobileNav>
