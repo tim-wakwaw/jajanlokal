@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "../contexts/OptimizedAuthContext";
+import { showLogoutConfirmation, showToast } from "../lib/sweetalert";
 import {
   Navbar,
   NavBody,
@@ -37,9 +38,15 @@ export default function Header() {
 
   const handleSignOut = async () => {
     try {
-      await signOut();
+      const result = await showLogoutConfirmation();
+      
+      if (result.isConfirmed) {
+        await signOut();
+        showToast('Berhasil keluar dari akun', 'success');
+      }
     } catch (error) {
       console.error('Error signing out:', error);
+      showToast('Gagal keluar dari akun', 'error');
     }
   };
 

@@ -88,3 +88,21 @@ export const showToast = (title: string, icon: 'success' | 'error' | 'warning' |
     title
   })
 }
+
+export const showLogoutConfirmation = () => {
+  return Swal.fire({
+    icon: 'question',
+    title: 'Keluar dari Akun?',
+    text: 'Apakah Anda yakin ingin keluar?',
+    showCancelButton: true,
+    confirmButtonColor: '#EF4444',
+    cancelButtonColor: '#6B7280',
+    confirmButtonText: 'Ya, Keluar',
+    cancelButtonText: 'Batal',
+    reverseButtons: true,
+    customClass: {
+      confirmButton: 'font-semibold px-6 py-2 rounded-lg',
+      cancelButton: 'font-semibold px-6 py-2 rounded-lg'
+    }
+  })
+}
