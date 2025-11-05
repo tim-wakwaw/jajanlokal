@@ -33,6 +33,7 @@ export default function BlogManagementPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [uploading, setUploading] = useState(false);
   
   const [formData, setFormData] = useState({
     title: "",
@@ -87,6 +88,58 @@ export default function BlogManagementPage() {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      showErrorAlert("File harus berupa gambar!");
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      showErrorAlert("Ukuran file maksimal 2MB!");
+      return;
+    }
+
+    try {
+      setUploading(true);
+
+      // Create unique filename
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+      const filePath = `blog-images/${fileName}`;
+
+      // Upload to Supabase Storage
+      const { error } = await supabase.storage
+        .from("blog-images")
+        .upload(filePath, file);
+
+      if (error) {
+        // If bucket doesn't exist, create it
+        if (error.message.includes("not found")) {
+          showErrorAlert("Storage bucket belum dibuat. Hubungi admin untuk setup.");
+        }
+        throw error;
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from("blog-images")
+        .getPublicUrl(filePath);
+
+      setFormData({ ...formData, image_url: publicUrl });
+      showSuccessAlert("Berhasil!", "Gambar berhasil diupload");
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      showErrorAlert("Gagal upload gambar");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -229,7 +282,7 @@ export default function BlogManagementPage() {
             onClick={() => setShowForm(!showForm)}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-medium shadow-lg"
           >
-            {showForm ? "Tutup Form" : "➕ Buat Blog Baru"}
+            {showForm ? "Tutup Form" : "Buat Blog Baru"}
           </button>
         </div>
 
@@ -285,20 +338,76 @@ export default function BlogManagementPage() {
                   />
                 </div>
 
-                <div>
+                <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    URL Gambar (Gunakan Unsplash atau URL valid)
+                    Gambar Cover
                   </label>
-                  <input
-                    type="url"
-                    value={formData.image_url}
-                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
-                    placeholder="https://images.unsplash.com/photo-xxx?w=800"
-                  />
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Contoh: https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800
-                  </p>
+                  
+                  {/* Upload Section */}
+                  <div className="space-y-3">
+                    <div className="flex gap-3">
+                      <label className="flex-1 cursor-pointer">
+                        <div className="flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 transition-colors">
+                          <div className="text-center">
+                            {uploading ? (
+                              <>
+                                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">Uploading...</p>
+                              </>
+                            ) : (
+                              <>
+                                <svg className="mx-auto h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                </svg>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                                  📤 Upload gambar (max 2MB)
+                                </p>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                          disabled={uploading}
+                        />
+                      </label>
+                    </div>
+
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+                      </div>
+                      <div className="relative flex justify-center text-sm">
+                        <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">atau pakai URL</span>
+                      </div>
+                    </div>
+
+                    <input
+                      type="url"
+                      value={formData.image_url}
+                      onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500"
+                      placeholder="https://images.unsplash.com/photo-xxx?w=800"
+                    />
+                  </div>
+
+                  {/* Image Preview */}
+                  {formData.image_url && (
+                    <div className="mt-3">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Preview:</p>
+                      <div className="relative w-full h-48 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600">
+                        <Image
+                          src={formData.image_url}
+                          alt="Preview"
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -364,7 +473,7 @@ export default function BlogManagementPage() {
                   type="submit"
                   className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-medium"
                 >
-                  {editingPost ? "💾 Update Post" : "Post Blog"}
+                  {editingPost ? "Update Post" : "Post Blog"}
                 </button>
                 <button
                   type="button"
