@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '../../../contexts/OptimizedAuthContext'
 import { supabase } from '../../../lib/supabase'
 import { motion } from 'framer-motion'
@@ -11,7 +12,8 @@ import {
   CheckCircleIcon,
   ClockIcon,
   UserGroupIcon,
-  ChartBarIcon
+  ChartBarIcon,
+  NewspaperIcon
 } from '@heroicons/react/24/outline'
 
 interface DashboardStats {
@@ -34,6 +36,7 @@ interface PendingRequest {
 }
 
 export default function AdminDashboard() {
+  const router = useRouter()
   const { user, profile } = useAuth()
   const [stats, setStats] = useState<DashboardStats>({
     pendingUmkm: 0,
@@ -326,7 +329,7 @@ export default function AdminDashboard() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <button
-                onClick={() => window.location.href = '/admin/umkm-requests'}
+                onClick={() => router.push('/admin/umkm-requests')}
                 className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-900 hover:bg-blue-100 dark:hover:bg-blue-800 rounded-lg transition-colors"
               >
                 <ClipboardDocumentListIcon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
@@ -337,7 +340,7 @@ export default function AdminDashboard() {
               </button>
               
               <button
-                onClick={() => window.location.href = '/admin/product-requests'}
+                onClick={() => router.push('/admin/product-requests')}
                 className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900 hover:bg-green-100 dark:hover:bg-green-800 rounded-lg transition-colors"
               >
                 <ShoppingBagIcon className="w-6 h-6 text-green-600 dark:text-green-400" />
@@ -348,13 +351,24 @@ export default function AdminDashboard() {
               </button>
               
               <button
-                onClick={() => window.location.href = '/admin/faq-management'}
+                onClick={() => router.push('/admin/faq-management')}
                 className="flex items-center gap-3 p-4 bg-purple-50 dark:bg-purple-900 hover:bg-purple-100 dark:hover:bg-purple-800 rounded-lg transition-colors"
               >
                 <QuestionMarkCircleIcon className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                 <div className="text-left">
                   <p className="font-medium text-gray-900 dark:text-white">Kelola FAQ</p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">{stats.pendingFaq} pending</p>
+                </div>
+              </button>
+              
+              <button
+                onClick={() => router.push('/admin/blog-management')}
+                className="flex items-center gap-3 p-4 bg-orange-50 dark:bg-orange-900 hover:bg-orange-100 dark:hover:bg-orange-800 rounded-lg transition-colors"
+              >
+                <NewspaperIcon className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                <div className="text-left">
+                  <p className="font-medium text-gray-900 dark:text-white">Kelola Blog</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Buat artikel baru</p>
                 </div>
               </button>
             </div>
