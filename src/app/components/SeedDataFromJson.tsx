@@ -45,9 +45,7 @@ export default function SeedDataFromJson() {
       const response = await fetch('/data/umkmData.json')
       const umkmData: UMKMData[] = await response.json()
       
-      console.log(`📦 Found ${umkmData.length} UMKM to import`)
-      
-      const currentUserId = user.id
+      console.log(`Found ${umkmData.length} UMKM to import`)
       
       let successCount = 0
       let totalProducts = 0
@@ -58,19 +56,17 @@ export default function SeedDataFromJson() {
         const umkmUuid = `00000000-0000-0000-0000-${umkm.id.toString().padStart(12, '0')}`
         
         const { error: umkmError } = await supabase
-          .from('umkm_requests')
+          .from('umkm')
           .upsert([{
             id: umkmUuid,
-            user_id: currentUserId,
             name: umkm.name,
             category: umkm.category,
             description: umkm.description || `UMKM ${umkm.name} menyediakan produk ${umkm.category} berkualitas`,
-            address: umkm.alamat || 'Indonesia',
+            alamat: umkm.alamat || 'Indonesia',
             lat: umkm.lat || -6.2088,
             lng: umkm.lng || 106.8456,
-            image_url: umkm.image,
-            status: 'approved',
-            priority: 1
+            image: umkm.image,
+            rating: 4.5
           }], { 
             onConflict: 'id',
             ignoreDuplicates: false 
@@ -90,20 +86,18 @@ export default function SeedDataFromJson() {
             
             return {
               id: productUuid,
-              user_id: currentUserId,
-              umkm_request_id: umkmUuid,
+              umkm_id: umkmUuid,
               name: product.name,
               price: product.price,
-              image_url: product.image || null,
+              image: product.image || null,
               description: product.description || `${product.name} - produk unggulan dari ${umkm.name}`,
               stock: product.stock || Math.floor(Math.random() * 50) + 20,
-              is_available: true,
-              status: 'approved'
+              is_available: true
             }
           })
 
           const { error: productsError } = await supabase
-            .from('product_requests')
+            .from('products')
             .upsert(productsToInsert, { 
               onConflict: 'id',
               ignoreDuplicates: false 
@@ -185,7 +179,7 @@ export default function SeedDataFromJson() {
 
         {loading && (
           <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
-            <p>⏳ Sedang mengimport data...</p>
+            <p>Sedang mengimport data...</p>
             <p>Mohon tunggu, proses ini membutuhkan waktu beberapa detik</p>
           </div>
         )}
