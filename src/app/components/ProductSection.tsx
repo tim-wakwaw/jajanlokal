@@ -45,6 +45,29 @@ export default function ProductSection() {
     };
 
     fetchProducts();
+
+    //  Setup Realtime subscription for products table
+    const { supabase } = require('@/lib/supabase');
+    const channel = supabase
+      .channel('homepage_products_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'products'
+        },
+        (payload: any) => {
+          console.log('🔄 Homepage product changed:', payload)
+          fetchProducts() // Refresh products
+        }
+      )
+      .subscribe()
+
+    // Cleanup on unmount
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, []);
 
   return (
