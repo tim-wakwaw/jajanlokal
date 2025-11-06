@@ -23,6 +23,7 @@ export default function FAQPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [formType, setFormType] = useState<'faq' | 'umkm' | 'product'>('faq');
   
   // Form states
   const [question, setQuestion] = useState("");
@@ -121,18 +122,45 @@ export default function FAQPage() {
         </motion.div>
 
         {/* Action Buttons */}
-        <div className="flex justify-center gap-4 mb-8">
+        <div className="flex flex-wrap justify-center gap-4 mb-8">
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => setShowForm(!showForm)}
+            onClick={() => {
+              setShowForm(!showForm);
+              setFormType('faq');
+            }}
             className="px-6 py-3 bg-linear-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all"
           >
-            {showForm ? "Lihat FAQ" : "Ajukan Pertanyaan"}
+            {showForm && formType === 'faq' ? "Lihat FAQ" : "Ajukan Pertanyaan"}
+          </motion.button>
+          
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              setShowForm(true);
+              setFormType('umkm');
+            }}
+            className="px-6 py-3 bg-linear-to-r from-green-600 to-teal-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all"
+          >
+            Daftar UMKM
+          </motion.button>
+          
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              setShowForm(true);
+              setFormType('product');
+            }}
+            className="px-6 py-3 bg-linear-to-r from-orange-600 to-pink-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all"
+          >
+            Tambah Produk
           </motion.button>
         </div>
 
-        {/* Question Form */}
+        {/* Forms */}
         <AnimatePresence>
           {showForm && (
             <motion.div
@@ -142,9 +170,46 @@ export default function FAQPage() {
               className="mb-12"
             >
               <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
-                <h3 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white">
-                  Ajukan Pertanyaan Anda
-                </h3>
+                {/* Tabs */}
+                <div className="flex gap-2 mb-6 border-b border-gray-200 dark:border-gray-700">
+                  <button
+                    onClick={() => setFormType('faq')}
+                    className={`px-4 py-2 font-semibold transition-all ${
+                      formType === 'faq'
+                        ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    }`}
+                  >
+                    ❓ Pertanyaan
+                  </button>
+                  <button
+                    onClick={() => setFormType('umkm')}
+                    className={`px-4 py-2 font-semibold transition-all ${
+                      formType === 'umkm'
+                        ? 'text-green-600 dark:text-green-400 border-b-2 border-green-600'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    }`}
+                  >
+                    🏪 UMKM
+                  </button>
+                  <button
+                    onClick={() => setFormType('product')}
+                    className={`px-4 py-2 font-semibold transition-all ${
+                      formType === 'product'
+                        ? 'text-orange-600 dark:text-orange-400 border-b-2 border-orange-600'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    }`}
+                  >
+                    Produk
+                  </button>
+                </div>
+
+                {/* FAQ Form */}
+                {formType === 'faq' && (
+                  <>
+                    <h3 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white">
+                      Ajukan Pertanyaan Anda
+                    </h3>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
                     <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
@@ -199,6 +264,28 @@ export default function FAQPage() {
                     {submitting ? "Mengirim..." : "Kirim Pertanyaan"}
                   </button>
                 </form>
+                </>
+                )}
+
+                {/* UMKM/Product Forms - Redirect to dedicated page */}
+                {(formType === 'umkm' || formType === 'product') && (
+                  <div className="text-center py-8">
+                    <h3 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">
+                      {formType === 'umkm' ? 'Daftar UMKM Baru' : 'Tambah Produk Baru'}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-6">
+                      {formType === 'umkm' 
+                        ? 'Daftarkan UMKM Anda dan jangkau lebih banyak pelanggan'
+                        : 'Tambahkan produk baru ke UMKM yang sudah terdaftar'}
+                    </p>
+                    <button
+                      onClick={() => window.location.href = `/request-umkm${formType === 'product' ? '?tab=product' : ''}`}
+                      className="px-8 py-3 bg-linear-to-r from-green-600 to-teal-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all"
+                    >
+                      Buka Form {formType === 'umkm' ? 'UMKM' : 'Produk'} →
+                    </button>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
