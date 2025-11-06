@@ -44,39 +44,59 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
     setLoading(true)
     try {
-      const { data, error } = await supabase
+      // Get cart items first
+      const { data: cartData, error: cartError } = await supabase
         .from('cart_items')
         .select('*')
         .eq('user_id', user.id)
 
-      if (error) {
-        // Silent fail if table doesn't exist yet or other query errors
-        // This prevents console spam during development
-        if (error.code !== 'PGRST116' && error.code !== '42P01') {
-          console.error('Cart query error:', error)
+      if (cartError) {
+        if (cartError.code !== 'PGRST116' && cartError.code !== '42P01') {
+          console.error('Cart query error:', cartError)
         }
-        // If error because no data or table missing, just set empty cart
         setCartItems([])
         return
       }
 
-      if (!data || data.length === 0) {
+      if (!cartData || cartData.length === 0) {
         setCartItems([])
         return
       }
 
-      // Map cart_items directly (no join needed)
-      const formattedItems: CartItem[] = data.map((item) => ({
-        id: item.id,
-        product_id: item.product_id,
-        product_name: item.product_name,
-        price: item.price,
-        product_price: item.price, // Add product_price field
-        product_image: item.image_url || undefined,
-        umkm_name: item.umkm_name || 'Unknown',
-        quantity: item.quantity,
-        stock: 999 // Default stock, update when products table exists
-      }))
+      // Fetch fresh product data for each cart item
+      const productIds = cartData.map(item => item.product_id)
+      const { data: productsData } = await supabase
+        .from('products')
+        .select(`
+          id,
+          name,
+          price,
+          image,
+          stock,
+          is_available,
+          umkm:umkm_id (
+            name
+          )
+        `)
+        .in('id', productIds)
+
+      // Map cart items with fresh product data
+      const formattedItems: CartItem[] = cartData.map((item) => {
+        const product = productsData?.find(p => p.id === item.product_id);
+        const umkm = product?.umkm as { name?: string } | null;
+        
+        return {
+          id: item.id,
+          product_id: item.product_id,
+          product_name: product?.name || item.product_name || 'Unknown Product',
+          price: product?.price || item.price,
+          product_price: product?.price || item.price,
+          product_image: product?.image || item.image_url || undefined,
+          umkm_name: umkm?.name || item.umkm_name || 'Unknown',
+          quantity: item.quantity,
+          stock: product?.stock || 999
+        }
+      })
 
       setCartItems(formattedItems)
     } catch (error: unknown) {
