@@ -59,6 +59,45 @@ export default function UMKMProductRequestsPage() {
       return
     }
     fetchRequests()
+
+    // Setup Realtime subscriptions for instant updates
+    const umkmChannel = supabase
+      .channel('umkm_requests_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'umkm_requests'
+        },
+        (payload) => {
+          console.log('🔄 UMKM Request changed:', payload)
+          fetchRequests() // Refresh data
+        }
+      )
+      .subscribe()
+
+    const productChannel = supabase
+      .channel('product_requests_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'product_requests'
+        },
+        (payload) => {
+          console.log('🔄 Product Request changed:', payload)
+          fetchRequests() // Refresh data
+        }
+      )
+      .subscribe()
+
+    // Cleanup subscriptions on unmount
+    return () => {
+      supabase.removeChannel(umkmChannel)
+      supabase.removeChannel(productChannel)
+    }
   }, [user, router])
 
   const fetchRequests = async () => {
@@ -218,22 +257,36 @@ export default function UMKMProductRequestsPage() {
   const handleDelete = async (id: string, type: 'umkm' | 'product') => {
     const result = await showConfirmAlert(
       'Hapus Permintaan',
-      'Apakah Anda yakin ingin menghapus permintaan ini?'
+      'Apakah Anda yakin ingin menghapus permintaan ini? Data di tabel utama juga akan dihapus jika sudah approved.'
     )
 
     if (!result.isConfirmed) return
 
     try {
-      const table = type === 'umkm' ? 'umkm_requests' : 'product_requests'
+      const requestTable = type === 'umkm' ? 'umkm_requests' : 'product_requests'
+      const mainTable = type === 'umkm' ? 'umkm' : 'products'
       
-      const { error } = await supabase
-        .from(table)
+      // Delete from main table first (if approved)
+      const { error: mainError } = await supabase
+        .from(mainTable)
+        .delete()
+        .eq('id', id)
+      
+      if (mainError) {
+        console.log('Main table delete (might not exist):', mainError)
+      } else {
+        console.log(`Deleted from ${mainTable} table`)
+      }
+      
+      // Delete from request table
+      const { error: requestError } = await supabase
+        .from(requestTable)
         .delete()
         .eq('id', id)
 
-      if (error) throw error
+      if (requestError) throw requestError
 
-      showSuccessAlert('Berhasil!', 'Permintaan berhasil dihapus')
+      showSuccessAlert('Berhasil!', 'Permintaan dan data terkait berhasil dihapus')
       setSelectedRequest(null)
       fetchRequests()
     } catch (error) {
@@ -252,16 +305,65 @@ export default function UMKMProductRequestsPage() {
     if (!editData || !selectedRequest) return
 
     try {
-      const table = 'umkm_name' in editData ? 'product_requests' : 'umkm_requests'
+      const isProduct = 'umkm_name' in editData
+      const requestTable = isProduct ? 'product_requests' : 'umkm_requests'
+      const mainTable = isProduct ? 'products' : 'umkm'
       
-      const { error } = await supabase
-        .from(table)
+      // Update request table
+      const { error: requestError } = await supabase
+        .from(requestTable)
         .update(editData)
         .eq('id', selectedRequest.id)
 
-      if (error) throw error
+      if (requestError) throw requestError
 
-      showSuccessAlert('Berhasil!', 'Permintaan berhasil diupdate')
+      // If status is approved, also update main table
+      if (selectedRequest.status === 'approved') {
+        if (isProduct) {
+          // Update product in main table
+          const productData = editData as ProductRequest
+          const { error: mainError } = await supabase
+            .from('products')
+            .update({
+              name: productData.product_name,
+              price: productData.price,
+              image: productData.image_url,
+              description: productData.description,
+              stock: 999,
+              is_available: true
+            })
+            .eq('id', selectedRequest.id)
+          
+          if (mainError) {
+            console.log('Main table update error:', mainError)
+          } else {
+            console.log('✅ Updated product in main table')
+          }
+        } else {
+          // Update UMKM in main table
+          const umkmData = editData as UMKMRequest
+          const { error: mainError } = await supabase
+            .from('umkm')
+            .update({
+              name: umkmData.name,
+              image: umkmData.image_url,
+              alamat: umkmData.alamat,
+              category: umkmData.category,
+              lat: umkmData.lat,
+              lng: umkmData.lng,
+              description: umkmData.description
+            })
+            .eq('id', selectedRequest.id)
+          
+          if (mainError) {
+            console.log('Main table update error:', mainError)
+          } else {
+            console.log('✅ Updated UMKM in main table')
+          }
+        }
+      }
+
+      showSuccessAlert('Berhasil!', 'Permintaan dan data terkait berhasil diupdate')
       setEditMode(false)
       setSelectedRequest(null)
       setEditData({})
