@@ -65,7 +65,7 @@ export default function ProductFilter({
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-neutral-400 h-5 w-5 group-focus-within:text-blue-500 transition-colors" />
               <input
                 type="text"
-                placeholder="Cari produk atau nama toko..."
+                placeholder="Cari nama produk..."
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 border-2 border-neutral-200 dark:border-neutral-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white/70 dark:bg-neutral-800/70 text-neutral-900 dark:text-neutral-100 placeholder-neutral-500 transition-all duration-200 backdrop-blur-sm"

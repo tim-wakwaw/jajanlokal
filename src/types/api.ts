@@ -19,6 +19,23 @@ export interface ProductRequestData {
   }
 }
 
+export interface ProductData {
+  id: string
+  name: string
+  price: number
+  image: string
+  stock: number
+  is_available: boolean
+  description: string
+  created_at: string
+  umkm: {
+    id: string
+    name: string
+    category: string
+    image: string
+  }
+}
+
 export interface UMKMRequestData {
   id: string
   name: string
