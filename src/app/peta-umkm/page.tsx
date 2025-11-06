@@ -244,6 +244,28 @@ export default function PetaUMKM() {
     };
 
     fetchUMKM();
+
+    // Setup Realtime subscription for umkm table
+    const channel = supabase
+      .channel('peta_umkm_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'umkm'
+        },
+        (payload) => {
+          console.log('UMKM changed on map:', payload)
+          fetchUMKM() // Refresh UMKM data
+        }
+      )
+      .subscribe()
+
+    // Cleanup on unmount
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [isClient]);
 
   /**
