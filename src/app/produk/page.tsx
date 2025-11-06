@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import EnhancedProductCard from "@/app/components/EnhancedProductCard";
 import ProductFilter from "@/app/components/ProductFilter";
 import { ProductService } from "../../lib/productService";
+import { supabase } from "@/lib/supabase";
 
 interface ProductWithUmkm {
   id: string;
@@ -31,7 +32,7 @@ export default function ProdukPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
 
-  const ITEMS_PER_PAGE = 8; // Kurangi jumlah item untuk loading lebih cepat
+  const ITEMS_PER_PAGE = 8; // kurangi jumlah item untuk loading lebih cepat
 
   // Fetch categories sekali saja dengan cache
   useEffect(() => {
@@ -140,9 +141,31 @@ export default function ProdukPage() {
     }
   }, [selectedCategory, searchQuery, sortBy]);
 
-  // Initial load
+  // Initial load + Realtime subscription
   useEffect(() => {
     fetchProducts(1, true);
+
+    // 🔥 Setup Realtime subscription for products table
+    const channel = supabase
+      .channel('products_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'products'
+        },
+        (payload) => {
+          console.log('🔄 Product changed:', payload)
+          fetchProducts(1, true) // Refresh from page 1
+        }
+      )
+      .subscribe()
+
+    // Cleanup on unmount
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [fetchProducts]);
 
   // Load more products
@@ -293,15 +316,32 @@ export default function ProdukPage() {
                   <button
                     onClick={loadMore}
                     disabled={loadingMore}
-                    className="px-8 py-3 bg-linear-to-rrom-blue-500 to-purple-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-200 disabled:opacity-50"
+                    className="inline-flex items-center gap-2 px-8 py-4 bg-linear-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loadingMore ? (
                       <>
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin inline-block mr-2"></div>
-                        Memuat...
+                        <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>Memuat...</span>
                       </>
                     ) : (
-                      'Muat Lebih Banyak'
+                      <>
+                        <span>Muat Lebih Banyak</span>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 10.293a1 1 0 010 1.414l-6 6a1 1 0 01-1.414 0l-6-6a1 1 0 111.414-1.414L9 14.586V3a1 1 0 012 0v11.586l4.293-4.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </>
                     )}
                   </button>
                 </div>
@@ -322,7 +362,7 @@ export default function ProdukPage() {
                     setSelectedCategory("all");
                     setSearchQuery("");
                   }}
-                  className="px-6 py-3 bg-gradreatnt-to-r from-blue-500 to-purple-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-200"
+                  className="px-6 py-3 bg-linear-to-r from-blue-500 to-purple-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-200"
                 >
                   Reset Filter
                 </button>

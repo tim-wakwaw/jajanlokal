@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion } from "motion/react";
 import EnhancedProductCard from "./EnhancedProductCard";
 import { ProductService } from "../../lib/productService";
+import { supabase } from "@/lib/supabase";
 
 interface Product {
   id: string;
@@ -24,30 +25,29 @@ export default function ProductSection() {
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const result = await ProductService.getProductsPaginated({
-          page: 1,
-          limit: 8,
-          sortBy: 'created_at' // Latest products
-        });
+  const fetchProducts = async () => {
+    try {
+      const result = await ProductService.getProductsPaginated({
+        page: 1,
+        limit: 8, // Only 8 products for homepage
+        sortBy: 'created_at' // Latest products
+      });
 
-        if (result.success && result.data) {
-          setProducts(result.data);
-          setTotalCount(result.totalCount || 0);
-        }
-      } catch (error) {
-        console.error('Error loading products:', error);
-      } finally {
-        setLoading(false);
+      if (result.success && result.data) {
+        setProducts(result.data);
+        setTotalCount(result.totalCount || 0);
       }
-    };
+    } catch (error) {
+      console.error('Error loading products:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchProducts();
 
     //  Setup Realtime subscription for products table
-    const { supabase } = require('@/lib/supabase');
     const channel = supabase
       .channel('homepage_products_changes')
       .on(
@@ -57,7 +57,7 @@ export default function ProductSection() {
           schema: 'public',
           table: 'products'
         },
-        (payload: any) => {
+        (payload: unknown) => {
           console.log('🔄 Homepage product changed:', payload)
           fetchProducts() // Refresh products
         }
@@ -79,7 +79,7 @@ export default function ProductSection() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+            className="text-4xl md:text-5xl font-bold mb-4 bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
           >
             Produk UMKM Lokal
           </motion.h2>
@@ -154,7 +154,7 @@ export default function ProductSection() {
             >
               <Link
                 href="/produk"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-linear-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 <span>Lihat Semua Produk</span>
                 <svg
