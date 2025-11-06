@@ -17,6 +17,7 @@ import { UMKMDetailCard } from "../components/UMKMDetailCard";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import ReactDOMServer from 'react-dom/server';
 import MapPopupCard from '../components/MapPopupCard';
+import { supabase } from '@/lib/supabase';
 
 // --- Tipe Data ---
 
@@ -24,9 +25,10 @@ import MapPopupCard from '../components/MapPopupCard';
  * @typedef {object} Product
  * @property {string} name - Nama produk.
  * @property {number} price - Harga produk.
+ * @property {string} [image] - URL gambar produk.
  */
 
-interface Product { name: string; price: number;}
+interface Product { name: string; price: number; image?: string;}
 
 /**
  * @typedef {object} Comment
@@ -194,26 +196,95 @@ export default function PetaUMKM() {
    */
   useEffect(() => {
     if (!isClient) return;
-    setIsLoadingData(true);
-    fetch("/data/umkmData.json")
-      .then((res) => res.json())
-      .then((data) => {
-          setUmkmList(data);
+    
+    const fetchUMKM = async () => {
+      setIsLoadingData(true);
+      
+      try {
+        const { data, error } = await supabase
+          .from('umkm')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error("Error fetching UMKM:", error);
           setIsLoadingData(false);
-          
-          // Preload images setelah data dimuat
-          data.forEach((umkm: UMKM) => {
-            if (umkm.image) {
-              const img = new Image(); 
-              img.src = umkm.image;
-            }
-          });
-        })
-      .catch((err) => {
-          console.error("Gagal load JSON:", err);
-          setIsLoadingData(false);
-      });
+          return;
+        }
+
+        // Transform Supabase data to match UMKM interface
+        const transformedData = data?.map(umkm => ({
+          id: umkm.id,
+          name: umkm.name,
+          image: umkm.image,
+          alamat: umkm.alamat,
+          category: umkm.category,
+          lat: parseFloat(umkm.lat || 0),
+          lng: parseFloat(umkm.lng || 0),
+          description: umkm.description,
+          rating: parseFloat(umkm.rating || 4.5),
+          comments: [], // Empty for now, can be populated from a separate table
+          products: [] // Will be loaded separately when UMKM is selected
+        })) || [];
+
+        setUmkmList(transformedData);
+        setIsLoadingData(false);
+        
+        // Preload images setelah data dimuat
+        transformedData.forEach((umkm: UMKM) => {
+          if (umkm.image) {
+            const img = new Image(); 
+            img.src = umkm.image;
+          }
+        });
+      } catch (err) {
+        console.error("Gagal load UMKM:", err);
+        setIsLoadingData(false);
+      }
+    };
+
+    fetchUMKM();
   }, [isClient]);
+
+  /**
+   * Load products for selected UMKM
+   */
+  useEffect(() => {
+    if (!selectedUMKM?.id) return;
+
+    const umkmId = selectedUMKM.id;
+    
+    const fetchProducts = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .select('name, price, image')
+          .eq('umkm_id', umkmId)
+          .eq('is_available', true);
+
+        if (error) {
+          console.error("Error fetching products:", error);
+          return;
+        }
+
+        // Update selectedUMKM with products
+        if (data) {
+          setSelectedUMKM(prev => prev && prev.id === umkmId ? {
+            ...prev,
+            products: data.map(p => ({
+              name: p.name,
+              price: p.price,
+              image: p.image
+            }))
+          } : prev);
+        }
+      } catch (err) {
+        console.error("Error loading products:", err);
+      }
+    };
+
+    fetchProducts();
+  }, [selectedUMKM?.id]);
 
   /**
    * Efek untuk menginisialisasi peta Leaflet (HANYA SEKALI).

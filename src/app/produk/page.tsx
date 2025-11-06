@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "motion/react";
 import EnhancedProductCard from "@/app/components/EnhancedProductCard";
 import ProductFilter from "@/app/components/ProductFilter";
@@ -48,19 +48,24 @@ export default function ProdukPage() {
     fetchCategories();
   }, []);
 
-  // Debounced search - optimized
-  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+  // Search input state (for immediate UI update)
+  const [searchInput, setSearchInput] = useState<string>("");
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const debouncedSearch = useCallback((query: string) => {
-    if (searchTimeout) clearTimeout(searchTimeout);
+    setSearchInput(query); // Update UI immediately
     
-    const timeout = setTimeout(() => {
-      setSearchQuery(query);
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    // Set new timeout
+    searchTimeoutRef.current = setTimeout(() => {
+      setSearchQuery(query); // Update actual search query after delay
       setCurrentPage(1);
     }, 300);
-    
-    setSearchTimeout(timeout);
-  }, [searchTimeout]);
+  }, []); // Empty deps - stable function
 
   // Fetch products with pagination - dengan error handling yang lebih baik
   const fetchProducts = useCallback(async (page: number = 1, reset: boolean = true) => {
@@ -234,7 +239,7 @@ export default function ProdukPage() {
             categories={categories}
             selectedCategory={selectedCategory}
             onCategoryChange={handleCategoryChange}
-            searchQuery={searchQuery}
+            searchQuery={searchInput}
             onSearchChange={debouncedSearch}
             sortBy={sortBy}
             onSortChange={handleSortChange}
