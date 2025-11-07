@@ -4,10 +4,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "./providers/ThemeProviders";
-import Header from "./header";
-import Footer from "./components/Footer";
-import { FloatingActionButton } from "./components/FloatingActionButton";
 import Providers from "./components/Providers";
+import LayoutContent from "./LayoutContent";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -58,19 +56,7 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <Providers>
-            {/* Header dengan Navbar untuk desktop dan mobile */}
-            <Header />
-            
-            {/* Main content area */}
-            <main className="relative">
-              {children}
-            </main>
-            
-            {/* Footer */}
-            <Footer />
-            
-            {/* Floating Action Button untuk Cart dan Admin */}
-            <FloatingActionButton />
+            <LayoutContent>{children}</LayoutContent>
           </Providers>
         </ThemeProvider>
       </body>
