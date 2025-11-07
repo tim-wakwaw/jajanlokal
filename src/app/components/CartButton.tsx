@@ -40,11 +40,6 @@ export function CartButton() {
       <CartSidebar
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
-        onCheckout={() => {
-          setIsCartOpen(false)
-          // Navigate to checkout page
-          window.location.href = '/checkout'
-        }}
       />
     </>
   )

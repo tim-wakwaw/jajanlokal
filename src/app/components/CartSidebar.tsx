@@ -13,10 +13,9 @@ import MagicBorderButton from './ui/MagicBorderButton'
 interface CartSidebarProps {
   isOpen: boolean
   onClose: () => void
-  onCheckout?: () => void
 }
 
-export function CartSidebar({ isOpen, onClose, onCheckout }: CartSidebarProps) {
+export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const { cartItems, updateQuantity, removeFromCart, cartTotal, cartCount } = useCart()
   const { user } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
@@ -71,7 +70,12 @@ export function CartSidebar({ isOpen, onClose, onCheckout }: CartSidebarProps) {
       return
     }
 
-    onCheckout?.()
+    // Save cart to localStorage for checkout page
+    localStorage.setItem(`cart_${user.id}`, JSON.stringify(cartItems))
+    
+    // Close sidebar and redirect to checkout
+    onClose()
+    window.location.href = '/checkout'
   }
 
   return (
