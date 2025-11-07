@@ -307,7 +307,6 @@ export default function UMKMProductRequestsPage() {
     try {
       const isProduct = 'umkm_name' in editData
       const requestTable = isProduct ? 'product_requests' : 'umkm_requests'
-      const mainTable = isProduct ? 'products' : 'umkm'
       
       // Update request table
       const { error: requestError } = await supabase

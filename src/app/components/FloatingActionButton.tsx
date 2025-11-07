@@ -128,11 +128,6 @@ export function FloatingActionButton() {
       <CartSidebar
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
-        onCheckout={() => {
-          setIsCartOpen(false)
-          // Future: Navigate to checkout
-          console.log('Navigate to checkout')
-        }}
       />
 
       {/* Backdrop when expanded */}

@@ -1,15 +1,15 @@
 import React from 'react';
+import Image from 'next/image';
 import { UMKM } from './UMKMDetailCard'; 
 
 interface Props {
   umkm: UMKM;
 }
 
-const UMKMDetailReview: React.FC<Props> = ({ umkm }) => {
-  const getAvatar = (name: string) => {
-    return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`;
-  };
+const getAvatar = (username: string) =>
+  `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=random`;
 
+const UMKMDetailReview: React.FC<Props> = ({ umkm }) => {
   return (
     <div className="flex flex-col gap-4">
       <h4 className="text-sm font-semibold text-foreground mb-0">
@@ -18,9 +18,11 @@ const UMKMDetailReview: React.FC<Props> = ({ umkm }) => {
       {umkm.comments.length > 0 ? (
         umkm.comments.map((comment, index) => (
           <div key={index} className="flex items-start gap-3 border-b border-border pb-3 last:border-b-0">
-            <img
+            <Image
               src={getAvatar(comment.user)}
               alt={comment.user}
+              width={32}
+              height={32}
               className="w-8 h-8 rounded-full bg-muted border"
             />
             <div className="flex-1">

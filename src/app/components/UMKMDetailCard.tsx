@@ -36,27 +36,34 @@ interface UMKMDetailCardProps {
 
 type ActiveTab = 'overview' | 'product' | 'review';
 
+interface TabButtonProps {
+  label: string;
+  icon: React.ReactNode;
+  isActive: boolean;
+  onClick: () => void;
+}
+
+const TabButton: React.FC<TabButtonProps> = ({ label, icon, isActive, onClick }) => (
+  <button
+    onClick={onClick}
+    className={cn(
+      "flex-1 flex flex-col items-center gap-1 p-3 text-xs font-medium border-b-2 transition-all",
+      isActive
+        ? "border-primary text-primary"
+        : "border-transparent text-muted-foreground hover:bg-muted"
+    )}
+  >
+    {icon}
+    {label}
+  </button>
+);
+
 
 export const UMKMDetailCard: React.FC<UMKMDetailCardProps> = ({ umkm, onClose, className }) => {
   const cardWrapperRef = useRef<HTMLDivElement>(null);
   useOutsideClick(cardWrapperRef, onClose);
   
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview');
-
-  const TabButton = ({ tab, label, icon }: { tab: ActiveTab, label: string, icon: React.ReactNode }) => (
-    <button
-      onClick={() => setActiveTab(tab)}
-      className={cn(
-        "flex-1 flex flex-col items-center gap-1 p-3 text-xs font-medium border-b-2 transition-all",
-        activeTab === tab
-          ? "border-primary text-primary"
-          : "border-transparent text-muted-foreground hover:bg-muted"
-      )}
-    >
-      {icon}
-      {label}
-    </button>
-  );
 
   return (
     <div className="fixed inset-0 z-1000 flex items-start justify-center bg-black/50 p-4 overflow-y-auto">
@@ -121,9 +128,24 @@ export const UMKMDetailCard: React.FC<UMKMDetailCardProps> = ({ umkm, onClose, c
                 className="w-full mt-4 border-b border-border"
               >
                 <nav className="flex justify-around">
-                  <TabButton tab="overview" label="Overview" icon={<IconBuildingStore className="w-4 h-4" />} />
-                  <TabButton tab="product" label="Product" icon={<IconShoppingCart className="w-4 h-4" />} />
-                  <TabButton tab="review" label="Review" icon={<IconMessage2 className="w-4 h-4" />} />
+                  <TabButton 
+                    label="Overview" 
+                    icon={<IconBuildingStore className="w-4 h-4" />} 
+                    isActive={activeTab === 'overview'}
+                    onClick={() => setActiveTab('overview')}
+                  />
+                  <TabButton 
+                    label="Product" 
+                    icon={<IconShoppingCart className="w-4 h-4" />} 
+                    isActive={activeTab === 'product'}
+                    onClick={() => setActiveTab('product')}
+                  />
+                  <TabButton 
+                    label="Review" 
+                    icon={<IconMessage2 className="w-4 h-4" />} 
+                    isActive={activeTab === 'review'}
+                    onClick={() => setActiveTab('review')}
+                  />
                 </nav>
               </CardItem>
 
