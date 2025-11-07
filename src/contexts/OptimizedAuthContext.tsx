@@ -141,16 +141,32 @@ export function OptimizedAuthProvider({ children }: { children: React.ReactNode 
 
   // Auth methods - sama seperti sebelumnya tapi optimized
   const signIn = async (email: string, password: string, redirectTo?: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error, data } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
     if (error) throw error
     
-    if (redirectTo && typeof window !== 'undefined') {
-      setTimeout(() => {
-        window.location.href = redirectTo
-      }, 100)
+    // Check user role after login
+    if (data.user) {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .single()
+      
+      // Redirect based on role
+      if (typeof window !== 'undefined') {
+        setTimeout(() => {
+          if (profileData?.role === 'admin' || profileData?.role === 'super_admin' || profileData?.role === 'moderator') {
+            window.location.href = '/admin/dashboard'
+          } else if (redirectTo) {
+            window.location.href = redirectTo
+          } else {
+            window.location.href = '/'
+          }
+        }, 100)
+      }
     }
   }
 
