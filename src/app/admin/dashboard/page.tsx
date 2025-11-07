@@ -1,414 +1,465 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAuth } from '../../../contexts/OptimizedAuthContext'
-import { supabase } from '../../../lib/supabase'
-import { motion } from 'framer-motion'
-import { 
-  ClipboardDocumentListIcon, 
-  ShoppingBagIcon, 
-  QuestionMarkCircleIcon,
-  CheckCircleIcon,
-  ClockIcon,
-  UserGroupIcon,
-  ChartBarIcon,
-  NewspaperIcon
-} from '@heroicons/react/24/outline'
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { motion } from "motion/react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+} from "recharts";
 
 interface DashboardStats {
-  pendingUmkm: number
-  pendingProducts: number
-  pendingFaq: number
-  totalUsers: number
-  approvedUmkm: number
-  approvedProducts: number
+  totalOrders: number;
+  totalRevenue: number;
+  totalUMKM: number;
+  activeProducts: number;
+  pendingRequests: number;
 }
 
-interface PendingRequest {
-  id: string
-  name: string
-  type: 'umkm' | 'product' | 'faq'
-  created_at: string
-  status: string
-  user_email?: string
-  priority?: number
+interface TopProduct {
+  product_name: string;
+  total_sold: number;
+  total_revenue: number;
 }
+
+interface UMKMRevenue {
+  umkm_name: string;
+  total_revenue: number;
+  order_count: number;
+}
+
+interface MonthlyData {
+  month: string;
+  revenue: number;
+  orders: number;
+}
+
+const COLORS = ["#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981"];
 
 export default function AdminDashboard() {
-  const router = useRouter()
-  const { user, profile } = useAuth()
   const [stats, setStats] = useState<DashboardStats>({
-    pendingUmkm: 0,
-    pendingProducts: 0,
-    pendingFaq: 0,
-    totalUsers: 0,
-    approvedUmkm: 0,
-    approvedProducts: 0
-  })
-  const [recentRequests, setRecentRequests] = useState<PendingRequest[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    if (profile?.role === 'admin' || profile?.role === 'super_admin') {
-      fetchDashboardData()
-    }
-  }, [profile])
+    totalOrders: 0,
+    totalRevenue: 0,
+    totalUMKM: 0,
+    activeProducts: 0,
+    pendingRequests: 0,
+  });
+  const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
+  const [umkmRevenue, setUMKMRevenue] = useState<UMKMRevenue[]>([]);
+  const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchDashboardData = async () => {
-    try {
-      setLoading(true)
+    setLoading(true);
 
-      // Fetch stats
-      const [
-        { count: pendingUmkm }, 
-        { count: pendingProducts }, 
-        { count: pendingFaq },
-        { count: totalUsers },
-        { count: approvedUmkm },
-        { count: approvedProducts }
-      ] = await Promise.all([
-        supabase.from('umkm_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('product_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('faq_questions').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('profiles').select('*', { count: 'exact', head: true }),
-        supabase.from('umkm').select('*', { count: 'exact', head: true }),
-        supabase.from('products').select('*', { count: 'exact', head: true })
-      ])
+    // Fetch orders
+    const { data: orders } = await supabase.from("orders").select("*");
 
-      setStats({
-        pendingUmkm: pendingUmkm || 0,
-        pendingProducts: pendingProducts || 0,
-        pendingFaq: pendingFaq || 0,
-        totalUsers: totalUsers || 0,
-        approvedUmkm: approvedUmkm || 0,
-        approvedProducts: approvedProducts || 0
-      })
+    if (orders) {
+      const totalRevenue = orders.reduce(
+        (sum, order) => sum + Number(order.total_amount || 0),
+        0
+      );
 
-      // Fetch recent requests
-      const { data: umkmRequests } = await supabase
-        .from('umkm_requests')
-        .select('id, name, created_at, status, priority')
-        .eq('status', 'pending')
-        .order('priority', { ascending: false })
-        .order('created_at', { ascending: false })
-        .limit(5)
+      setStats((prev) => ({
+        ...prev,
+        totalOrders: orders.length,
+        totalRevenue,
+      }));
 
-      const { data: productRequests } = await supabase
-        .from('product_requests')
-        .select('id, name, created_at, status, priority')
-        .eq('status', 'pending')
-        .order('priority', { ascending: false })
-        .order('created_at', { ascending: false })
-        .limit(5)
+      // Calculate top products
+      const productStats: Record<string, { sold: number; revenue: number }> =
+        {};
+      const umkmStats: Record<string, { revenue: number; orders: number }> =
+        {};
 
-      const { data: faqRequests } = await supabase
-        .from('faq_questions')
-        .select('id, question, created_at, status, email')
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false })
-        .limit(5)
+      orders.forEach((order) => {
+        const products = order.products as Array<{
+          product_name: string;
+          quantity: number;
+          price: number;
+          umkm_name?: string;
+        }>;
 
-      const faqRequestsArray = faqRequests || []
-      
-      const allRequests: PendingRequest[] = [
-        ...(umkmRequests?.map(req => ({ ...req, type: 'umkm' as const })) || []),
-        ...(productRequests?.map(req => ({ ...req, type: 'product' as const })) || []),
-        ...faqRequestsArray.map(req => ({ 
-          id: req.id,
-          name: req.question,
-          created_at: req.created_at,
-          status: req.status,
-          user_email: req.email,
-          type: 'faq' as const, 
-          priority: 1 
+        products?.forEach((product) => {
+          const name = product.product_name || "Unknown";
+          const quantity = product.quantity || 0;
+          const revenue = (product.price || 0) * quantity;
+
+          // Product stats
+          if (!productStats[name]) {
+            productStats[name] = { sold: 0, revenue: 0 };
+          }
+          productStats[name].sold += quantity;
+          productStats[name].revenue += revenue;
+
+          // UMKM stats
+          const umkmName = product.umkm_name || "Unknown UMKM";
+          if (!umkmStats[umkmName]) {
+            umkmStats[umkmName] = { revenue: 0, orders: 0 };
+          }
+          umkmStats[umkmName].revenue += revenue;
+        });
+
+        // Count orders per UMKM
+        const umkmName =
+          (products[0]?.umkm_name as string) || "Unknown UMKM";
+        if (umkmStats[umkmName]) {
+          umkmStats[umkmName].orders += 1;
+        }
+      });
+
+      // Top products
+      const topProds = Object.entries(productStats)
+        .map(([name, stats]) => ({
+          product_name: name,
+          total_sold: stats.sold,
+          total_revenue: stats.revenue,
         }))
-      ]
+        .sort((a, b) => b.total_sold - a.total_sold)
+        .slice(0, 5);
 
-      setRecentRequests(allRequests.slice(0, 10))
+      setTopProducts(topProds);
+
+      // UMKM revenue
+      const umkmRev = Object.entries(umkmStats)
+        .map(([name, stats]) => ({
+          umkm_name: name,
+          total_revenue: stats.revenue,
+          order_count: stats.orders,
+        }))
+        .sort((a, b) => b.total_revenue - a.total_revenue)
+        .slice(0, 5);
+
+      setUMKMRevenue(umkmRev);
+
+      // Calculate monthly data (last 6 months)
+      const monthlyRevenue: Record<string, { revenue: number; orders: number }> = {};
+      const now = new Date();
       
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Redirect jika bukan admin
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Akses Ditolak</h2>
-          <p className="mb-4">Silakan login terlebih dahulu</p>
-          <button 
-            onClick={() => window.location.href = '/auth/login'}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg"
-          >
-            Login
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  if (profile?.role !== 'admin' && profile?.role !== 'super_admin') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Akses Ditolak</h2>
-          <p className="mb-4">Anda tidak memiliki izin untuk mengakses halaman admin</p>
-          <button 
-            onClick={() => window.location.href = '/'}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg"
-          >
-            Kembali ke Home
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  const StatCard = ({ title, value, icon: Icon, color, subtitle }: {
-    title: string
-    value: number
-    icon: React.ComponentType<{ className?: string }>
-    color: string
-    subtitle?: string
-  }) => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700"
-    >
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-gray-600 dark:text-gray-400 text-sm font-medium">{title}</p>
-          <p className={`text-3xl font-bold ${color}`}>{value}</p>
-          {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
-        </div>
-        <div className={`p-3 rounded-lg ${color.replace('text', 'bg').replace('600', '100')} dark:${color.replace('text', 'bg').replace('600', '900')}`}>
-          <Icon className={`w-6 h-6 ${color}`} />
-        </div>
-      </div>
-    </motion.div>
-  )
-
-  const RequestItem = ({ request }: { request: PendingRequest }) => {
-    const getIcon = () => {
-      switch (request.type) {
-        case 'umkm': return ClipboardDocumentListIcon
-        case 'product': return ShoppingBagIcon
-        case 'faq': return QuestionMarkCircleIcon
-        default: return ClockIcon
+      // Initialize last 6 months
+      for (let i = 5; i >= 0; i--) {
+        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const monthKey = date.toLocaleDateString('id-ID', { month: 'short', year: '2-digit' });
+        monthlyRevenue[monthKey] = { revenue: 0, orders: 0 };
       }
+
+      // Group orders by month
+      orders.forEach((order) => {
+        const orderDate = new Date(order.created_at);
+        const monthKey = orderDate.toLocaleDateString('id-ID', { month: 'short', year: '2-digit' });
+        
+        if (monthlyRevenue[monthKey]) {
+          monthlyRevenue[monthKey].revenue += Number(order.total_amount || 0);
+          monthlyRevenue[monthKey].orders += 1;
+        }
+      });
+
+      // Convert to array
+      const monthlyDataArray = Object.entries(monthlyRevenue).map(([month, data]) => ({
+        month,
+        revenue: data.revenue,
+        orders: data.orders,
+      }));
+
+      setMonthlyData(monthlyDataArray);
     }
 
-    const getTypeLabel = () => {
-      switch (request.type) {
-        case 'umkm': return 'UMKM'
-        case 'product': return 'Produk'
-        case 'faq': return 'FAQ'
-        default: return 'Unknown'
-      }
-    }
+    // Fetch UMKM count
+    const { count: umkmCount } = await supabase
+      .from("umkm")
+      .select("*", { count: "exact", head: true });
 
-    const Icon = getIcon()
+    // Fetch products count
+    const { count: productsCount } = await supabase
+      .from("products")
+      .select("*", { count: "exact", head: true })
+      .eq("is_available", true);
 
-    return (
-      <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-      >
-        <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-          <Icon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-medium text-gray-900 dark:text-white truncate">
-            {request.name}
-          </p>
-          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-            <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full text-xs">
-              {getTypeLabel()}
-            </span>
-            <span>{new Date(request.created_at).toLocaleDateString('id-ID')}</span>
-            {request.user_email && <span>• {request.user_email}</span>}
-          </div>
-        </div>
-        {request.priority && request.priority > 1 && (
-          <div className="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 px-2 py-1 rounded-full text-xs">
-            Prioritas
-          </div>
-        )}
-      </motion.div>
-    )
-  }
+    // Fetch pending requests
+    const [
+      { count: pendingUmkm },
+      { count: pendingProducts },
+      { count: pendingFaq },
+    ] = await Promise.all([
+      supabase
+        .from("umkm_requests")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending"),
+      supabase
+        .from("product_requests")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending"),
+      supabase
+        .from("faq_questions")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending"),
+    ]);
+
+    setStats((prev) => ({
+      ...prev,
+      totalUMKM: umkmCount || 0,
+      activeProducts: productsCount || 0,
+      pendingRequests:
+        (pendingUmkm || 0) + (pendingProducts || 0) + (pendingFaq || 0),
+    }));
+
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      await fetchDashboardData();
+    };
+    void fetchData();
+  }, []);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-xl font-medium text-gray-600 dark:text-gray-400">
-            Memuat dashboard admin...
-          </p>
-        </div>
+      <div className="flex items-center justify-center h-96">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
-    )
+    );
   }
 
+  const statCards = [
+    {
+      title: "Total Orders",
+      value: stats.totalOrders.toLocaleString(),
+      icon: "📦",
+      growth: "+12%",
+      bg: "bg-blue-50 dark:bg-blue-900/20",
+      iconColor: "text-blue-600",
+    },
+    {
+      title: "Total Revenue",
+      value: `Rp ${(stats.totalRevenue / 1000000).toFixed(1)}M`,
+      icon: "💰",
+      growth: "+15%",
+      bg: "bg-green-50 dark:bg-green-900/20",
+      iconColor: "text-green-600",
+    },
+    {
+      title: "Total UMKM",
+      value: stats.totalUMKM.toLocaleString(),
+      icon: "🏪",
+      growth: "+8%",
+      bg: "bg-purple-50 dark:bg-purple-900/20",
+      iconColor: "text-purple-600",
+    },
+    {
+      title: "Active Products",
+      value: stats.activeProducts.toLocaleString(),
+      icon: "📱",
+      growth: "+5%",
+      bg: "bg-orange-50 dark:bg-orange-900/20",
+      iconColor: "text-orange-600",
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="pt-20 pb-8">
-        <div className="container mx-auto px-4">
-          {/* Header */}
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
+          Dashboard Overview
+        </h1>
+        <p className="text-neutral-600 dark:text-neutral-400 mt-1">
+          Monitor your platform performance and analytics
+        </p>
+      </div>
+
+      {/* Pending Requests Alert */}
+      {stats.pendingRequests > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4"
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">⚠️</span>
+            <div>
+              <p className="font-medium text-yellow-900 dark:text-yellow-200">
+                {stats.pendingRequests} Pending Requests
+              </p>
+              <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                You have requests waiting for review
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {statCards.map((card, index) => (
           <motion.div
+            key={card.title}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-8"
+            transition={{ delay: index * 0.1 }}
+            className={`${card.bg} rounded-2xl p-6 border border-neutral-200 dark:border-neutral-800`}
           >
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-              Dashboard Admin
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Selamat datang, {profile?.full_name || profile?.email}! Kelola permintaan UMKM, produk, dan FAQ di sini.
+            <div className="flex items-start justify-between mb-4">
+              <div className="w-12 h-12 rounded-xl bg-white dark:bg-neutral-800 flex items-center justify-center">
+                <span className="text-2xl">{card.icon}</span>
+              </div>
+              <span className="text-green-600 text-sm font-medium px-2 py-1 bg-white dark:bg-neutral-900 rounded-lg">
+                {card.growth}
+              </span>
+            </div>
+            <h3 className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
+              {card.title}
+            </h3>
+            <p className="text-2xl font-bold text-neutral-900 dark:text-white mt-1">
+              {card.value}
             </p>
           </motion.div>
-
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <StatCard
-              title="Permintaan UMKM"
-              value={stats.pendingUmkm}
-              icon={ClipboardDocumentListIcon}
-              color="text-blue-600"
-              subtitle={`${stats.approvedUmkm} disetujui`}
-            />
-            <StatCard
-              title="Permintaan Produk"
-              value={stats.pendingProducts}
-              icon={ShoppingBagIcon}
-              color="text-green-600"
-              subtitle={`${stats.approvedProducts} disetujui`}
-            />
-            <StatCard
-              title="Pertanyaan FAQ"
-              value={stats.pendingFaq}
-              icon={QuestionMarkCircleIcon}
-              color="text-purple-600"
-            />
-            <StatCard
-              title="Total Pengguna"
-              value={stats.totalUsers}
-              icon={UserGroupIcon}
-              color="text-orange-600"
-            />
-            <StatCard
-              title="UMKM Aktif"
-              value={stats.approvedUmkm}
-              icon={CheckCircleIcon}
-              color="text-emerald-600"
-            />
-            <StatCard
-              title="Produk Aktif"
-              value={stats.approvedProducts}
-              icon={ChartBarIcon}
-              color="text-indigo-600"
-            />
-          </div>
-
-          {/* Quick Actions */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8"
-          >
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-              Aksi Cepat
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <button
-                onClick={() => router.push('/admin/umkm-product-requests')}
-                className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-900 hover:bg-blue-100 dark:hover:bg-blue-800 rounded-lg transition-colors"
-              >
-                <ClipboardDocumentListIcon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                <div className="text-left">
-                  <p className="font-medium text-gray-900 dark:text-white">Kelola Permintaan</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{stats.pendingUmkm + stats.pendingProducts} pending</p>
-                </div>
-              </button>
-              
-              <button
-                onClick={() => router.push('/admin/faq-management')}
-                className="flex items-center gap-3 p-4 bg-purple-50 dark:bg-purple-900 hover:bg-purple-100 dark:hover:bg-purple-800 rounded-lg transition-colors"
-              >
-                <QuestionMarkCircleIcon className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                <div className="text-left">
-                  <p className="font-medium text-gray-900 dark:text-white">Kelola FAQ</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{stats.pendingFaq} pending</p>
-                </div>
-              </button>
-              
-              <button
-                onClick={() => router.push('/admin/blog-management')}
-                className="flex items-center gap-3 p-4 bg-orange-50 dark:bg-orange-900 hover:bg-orange-100 dark:hover:bg-orange-800 rounded-lg transition-colors"
-              >
-                <NewspaperIcon className="w-6 h-6 text-orange-600 dark:text-orange-400" />
-                <div className="text-left">
-                  <p className="font-medium text-gray-900 dark:text-white">Kelola Blog</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Buat artikel baru</p>
-                </div>
-              </button>
-
-              <button
-                onClick={() => router.push('/request-umkm')}
-                className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900 hover:bg-green-100 dark:hover:bg-green-800 rounded-lg transition-colors"
-              >
-                <ShoppingBagIcon className="w-6 h-6 text-green-600 dark:text-green-400" />
-                <div className="text-left">
-                  <p className="font-medium text-gray-900 dark:text-white">Ajukan UMKM/Produk</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Form permintaan</p>
-                </div>
-              </button>
-            </div>
-          </motion.div>
-
-          {/* Recent Requests */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Permintaan Terbaru
-              </h2>
-              <button
-                onClick={fetchDashboardData}
-                className="text-blue-600 hover:text-blue-700 font-medium text-sm"
-              >
-                Refresh
-              </button>
-            </div>
-            
-            {recentRequests.length > 0 ? (
-              <div className="space-y-4">
-                {recentRequests.map((request) => (
-                  <RequestItem key={`${request.type}-${request.id}`} request={request} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <div className="text-4xl mb-4">🎉</div>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Tidak ada permintaan pending saat ini
-                </p>
-              </div>
-            )}
-          </motion.div>
-        </div>
+        ))}
       </div>
+
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Top Products Chart */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="bg-white dark:bg-neutral-900 rounded-2xl p-6 border border-neutral-200 dark:border-neutral-800"
+        >
+          <h2 className="text-lg font-bold text-neutral-900 dark:text-white mb-6">
+            🏆 Top Selling Products
+          </h2>
+          {topProducts.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={topProducts}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis 
+                  dataKey="product_name" 
+                  tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                  angle={-15}
+                  textAnchor="end"
+                  height={80}
+                />
+                <YAxis tick={{ fill: '#9CA3AF', fontSize: 12 }} />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1F2937', 
+                    border: '1px solid #374151',
+                    borderRadius: '8px',
+                    color: '#F3F4F6'
+                  }}
+                  formatter={(value: number) => [value + ' sold', 'Total Sold']}
+                />
+                <Legend />
+                <Bar dataKey="total_sold" fill={COLORS[0]} name="Products Sold" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-center text-neutral-500 py-8">No product data available</p>
+          )}
+        </motion.div>
+
+        {/* UMKM Revenue Chart */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="bg-white dark:bg-neutral-900 rounded-2xl p-6 border border-neutral-200 dark:border-neutral-800"
+        >
+          <h2 className="text-lg font-bold text-neutral-900 dark:text-white mb-6">
+            💰 Top UMKM by Revenue
+          </h2>
+          {umkmRevenue.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={umkmRevenue}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                <XAxis 
+                  dataKey="umkm_name" 
+                  tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                  angle={-15}
+                  textAnchor="end"
+                  height={80}
+                />
+                <YAxis tick={{ fill: '#9CA3AF', fontSize: 12 }} />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#1F2937', 
+                    border: '1px solid #374151',
+                    borderRadius: '8px',
+                    color: '#F3F4F6'
+                  }}
+                  formatter={(value: number) => ['Rp ' + value.toLocaleString(), 'Revenue']}
+                />
+                <Legend />
+                <Bar dataKey="total_revenue" fill={COLORS[2]} name="Total Revenue" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-center text-neutral-500 py-8">No UMKM data available</p>
+          )}
+        </motion.div>
+      </div>
+
+      {/* Monthly Revenue Trend */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white dark:bg-neutral-900 rounded-2xl p-6 border border-neutral-200 dark:border-neutral-800"
+      >
+        <h2 className="text-lg font-bold text-neutral-900 dark:text-white mb-6">
+          📈 Monthly Revenue Trend
+        </h2>
+        {monthlyData.length > 0 ? (
+          <ResponsiveContainer width="100%" height={350}>
+            <LineChart data={monthlyData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis 
+                dataKey="month" 
+                tick={{ fill: '#9CA3AF', fontSize: 12 }}
+              />
+              <YAxis tick={{ fill: '#9CA3AF', fontSize: 12 }} />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: '#1F2937', 
+                  border: '1px solid #374151',
+                  borderRadius: '8px',
+                  color: '#F3F4F6'
+                }}
+                formatter={(value: number, name: string) => {
+                  if (name === 'revenue') return ['Rp ' + value.toLocaleString(), 'Revenue'];
+                  return [value, 'Orders'];
+                }}
+              />
+              <Legend />
+              <Line 
+                type="monotone" 
+                dataKey="revenue" 
+                stroke={COLORS[1]} 
+                strokeWidth={3}
+                name="Revenue"
+                dot={{ fill: COLORS[1], r: 5 }}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="orders" 
+                stroke={COLORS[3]} 
+                strokeWidth={3}
+                name="Orders"
+                dot={{ fill: COLORS[3], r: 5 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        ) : (
+          <p className="text-center text-neutral-500 py-8">No monthly data available</p>
+        )}
+      </motion.div>
     </div>
-  )
+  );
 }

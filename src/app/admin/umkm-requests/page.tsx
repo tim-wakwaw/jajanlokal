@@ -13,18 +13,16 @@ interface UMKMRequest {
   name: string
   category: string
   description: string
-  address: string
+  alamat: string
   lat?: number
   lng?: number
   image_url?: string
   status: string
-  priority: number
-  created_at: string
+  user_email: string
   user_id: string
-  profiles?: {
-    email: string
-    full_name?: string
-  }
+  admin_notes?: string
+  created_at: string
+  updated_at?: string
 }
 
 export default function UMKMRequestsPage() {
@@ -40,13 +38,7 @@ export default function UMKMRequestsPage() {
       
       let query = supabase
         .from('umkm_requests')
-        .select(`
-          *,
-          profiles!inner(
-            full_name,
-            email
-          )
-        `)
+        .select('*')
 
       if (filter !== 'all') {
         query = query.eq('status', filter)
@@ -54,10 +46,15 @@ export default function UMKMRequestsPage() {
 
       const { data, error } = await query.order('created_at', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase error:', error)
+        throw error
+      }
+      
       setRequests(data || [])
     } catch (error) {
       console.error('Error fetching requests:', error)
+      showErrorAlert('Failed to load UMKM requests. Please try again.')
       setRequests([])
     } finally {
       setLoading(false)
@@ -114,35 +111,6 @@ export default function UMKMRequestsPage() {
     }
   }
 
-  const handleSetPriority = async (requestId: string, priority: number) => {
-    try {
-      const { error } = await supabase
-        .from('umkm_requests')
-        .update({ priority })
-        .eq('id', requestId)
-
-      if (error) throw error
-
-      showSuccessAlert('Berhasil!', `Prioritas telah diatur ke ${priority}`)
-      fetchRequests()
-      
-    } catch (error) {
-      console.error('Error setting priority:', error)
-      showErrorAlert('Error', 'Gagal mengatur prioritas')
-    }
-  }
-
-  if (profile?.role !== 'admin' && profile?.role !== 'super_admin') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Akses Ditolak</h2>
-          <p>Anda tidak memiliki izin untuk mengakses halaman ini</p>
-        </div>
-      </div>
-    )
-  }
-
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       pending: { color: 'bg-yellow-100 text-yellow-800', label: 'Pending' },
@@ -172,17 +140,12 @@ export default function UMKMRequestsPage() {
               {request.name}
             </h3>
             {getStatusBadge(request.status)}
-            {request.priority > 1 && (
-              <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium">
-                Prioritas {request.priority}
-              </span>
-            )}
           </div>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
             Kategori: <span className="font-medium">{request.category}</span>
           </p>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-            Pengaju: <span className="font-medium">{request.profiles?.full_name || request.profiles?.email}</span>
+            Pengaju: <span className="font-medium">{request.user_email}</span>
           </p>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
             Tanggal: {new Date(request.created_at).toLocaleDateString('id-ID')}
@@ -230,21 +193,23 @@ export default function UMKMRequestsPage() {
               <XCircleIcon className="w-4 h-4" />
               Tolak
             </button>
-
-            <select
-              value={request.priority}
-              onChange={(e) => handleSetPriority(request.id, parseInt(e.target.value))}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-            >
-              <option value={1}>Prioritas Normal</option>
-              <option value={2}>Prioritas Tinggi</option>
-              <option value={3}>Prioritas Sangat Tinggi</option>
-            </select>
           </>
         )}
       </div>
     </motion.div>
   )
+
+  // Check authorization
+  if (!profile || (profile.role !== 'admin' && profile.role !== 'super_admin' && profile.role !== 'moderator')) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Akses Ditolak</h2>
+          <p className="text-gray-600 dark:text-gray-400">Anda tidak memiliki izin untuk mengakses halaman ini</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -382,7 +347,7 @@ export default function UMKMRequestsPage() {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Alamat
                   </label>
-                  <p className="text-gray-900 dark:text-white">{selectedRequest.address}</p>
+                  <p className="text-gray-900 dark:text-white">{selectedRequest.alamat}</p>
                 </div>
 
                 {selectedRequest.lat && selectedRequest.lng && (
@@ -423,7 +388,7 @@ export default function UMKMRequestsPage() {
                     Pengaju
                   </label>
                   <p className="text-gray-900 dark:text-white">
-                    {selectedRequest.profiles?.full_name || selectedRequest.profiles?.email}
+                    {selectedRequest.user_email}
                   </p>
                 </div>
 
