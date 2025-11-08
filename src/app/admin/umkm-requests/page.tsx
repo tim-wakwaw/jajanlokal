@@ -69,7 +69,37 @@ export default function UMKMRequestsPage() {
 
   const handleApprove = async (requestId: string) => {
     try {
-      const { error } = await supabase
+      // 1. Get the request data first
+      const { data: requestData, error: fetchError } = await supabase
+        .from('umkm_requests')
+        .select('*')
+        .eq('id', requestId)
+        .single()
+
+      if (fetchError) throw fetchError
+      if (!requestData) throw new Error('Request not found')
+
+      // 2. Insert into umkm table (use the same ID)
+      const { error: insertError } = await supabase
+        .from('umkm')
+        .insert({
+          id: requestData.id, // Use same ID as request
+          name: requestData.name,
+          category: requestData.category,
+          description: requestData.description,
+          alamat: requestData.alamat,
+          lat: requestData.lat,
+          lng: requestData.lng,
+          image: requestData.image_url,
+          rating: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+
+      if (insertError) throw insertError
+
+      // 3. Update status in umkm_requests
+      const { error: updateError } = await supabase
         .from('umkm_requests')
         .update({ 
           status: 'approved',
@@ -77,9 +107,9 @@ export default function UMKMRequestsPage() {
         })
         .eq('id', requestId)
 
-      if (error) throw error
+      if (updateError) throw updateError
 
-      showSuccessAlert('Berhasil!', 'Permintaan UMKM telah disetujui')
+      showSuccessAlert('Berhasil!', 'Permintaan UMKM telah disetujui dan ditambahkan ke daftar UMKM')
       fetchRequests()
       setSelectedRequest(null)
       

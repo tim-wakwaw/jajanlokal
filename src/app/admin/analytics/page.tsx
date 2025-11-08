@@ -31,13 +31,6 @@ export default function AnalyticsPage() {
   const [topPerformers, setTopPerformers] = useState<ProductPerformance[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      await fetchAnalytics();
-    };
-    void fetchData();
-  }, []);
-
   const fetchAnalytics = async () => {
     setLoading(true);
 
@@ -168,6 +161,13 @@ export default function AnalyticsPage() {
 
     setLoading(false);
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      await fetchAnalytics();
+    };
+    void fetchData();
+  }, []);
 
   if (loading) {
     return (

@@ -178,8 +178,14 @@ export default function UMKMProductRequestsPage() {
 
           if (insertError) {
             console.error('❌ Error copying to umkm:', insertError)
+            console.error('❌ Error code:', insertError.code)
+            console.error('❌ Error message:', insertError.message)
+            console.error('❌ Error details:', insertError.details)
+            console.error('❌ Error hint:', insertError.hint)
+            await showErrorAlert(`Gagal copy ke tabel umkm: ${insertError.message}`)
           } else {
             console.log('✅ UMKM copied successfully:', insertedData)
+            await showSuccessAlert('UMKM berhasil dicopy ke tabel utama!')
           }
         } else {
           const productData = selectedRequest as ProductRequest
@@ -255,43 +261,105 @@ export default function UMKMProductRequestsPage() {
   }
 
   const handleDelete = async (id: string, type: 'umkm' | 'product') => {
-    const result = await showConfirmAlert(
-      'Hapus Permintaan',
-      'Apakah Anda yakin ingin menghapus permintaan ini? Data di tabel utama juga akan dihapus jika sudah approved.'
-    )
-
-    if (!result.isConfirmed) return
-
     try {
       const requestTable = type === 'umkm' ? 'umkm_requests' : 'product_requests'
       const mainTable = type === 'umkm' ? 'umkm' : 'products'
       
-      // Delete from main table first (if approved)
-      const { error: mainError } = await supabase
-        .from(mainTable)
-        .delete()
-        .eq('id', id)
+      console.log(`🗑️ Attempting to delete ${type} with ID:`, id)
       
-      if (mainError) {
-        console.log('Main table delete (might not exist):', mainError)
-      } else {
-        console.log(`Deleted from ${mainTable} table`)
+      // Check if request exists and its status
+      const { data: requestData, error: requestCheckError } = await supabase
+        .from(requestTable)
+        .select('status')
+        .eq('id', id)
+        .single()
+      
+      if (requestCheckError) {
+        console.error('Error checking request:', requestCheckError)
+        throw requestCheckError
+      }
+      
+      console.log('📋 Request status:', requestData?.status)
+      
+      // If approved, check if data exists in main table
+      let mainDataExists = false
+      if (requestData?.status === 'approved') {
+        const { data: mainData, error: mainCheckError } = await supabase
+          .from(mainTable)
+          .select('id')
+          .eq('id', id)
+          .single()
+        
+        mainDataExists = !!mainData && !mainCheckError
+        console.log(`📋 Data exists in ${mainTable}:`, mainDataExists)
+        
+        // If UMKM, check how many products are attached
+        if (type === 'umkm' && mainDataExists) {
+          const { data: productsData, count } = await supabase
+            .from('products')
+            .select('id', { count: 'exact' })
+            .eq('umkm_id', id)
+          
+          console.log(`📦 Products attached to UMKM:`, count)
+          
+          if (count && count > 0) {
+            const confirmProducts = await showConfirmAlert(
+              'Hapus UMKM dan Produk',
+              `UMKM ini memiliki ${count} produk. Semua produk juga akan dihapus. Lanjutkan?`
+            )
+            
+            if (!confirmProducts.isConfirmed) return
+          }
+        }
+      }
+      
+      // Final confirmation
+      const result = await showConfirmAlert(
+        'Hapus Permintaan',
+        `Apakah Anda yakin ingin menghapus permintaan ini?${mainDataExists ? ' Data di tabel utama juga akan dihapus.' : ''}`
+      )
+
+      if (!result.isConfirmed) return
+      
+      // Delete from main table if approved (using same ID because of upsert)
+      if (mainDataExists) {
+        console.log(`🗑️ Deleting from ${mainTable} table...`)
+        const { error: mainError } = await supabase
+          .from(mainTable)
+          .delete()
+          .eq('id', id)
+        
+        if (mainError) {
+          console.error(`❌ Error deleting from ${mainTable}:`, mainError)
+          // If it's a foreign key violation, try to give better error message
+          if (mainError.code === '23503') {
+            showErrorAlert('Error', 'Tidak bisa menghapus karena masih ada data terkait. Hapus produk terlebih dahulu.')
+            return
+          }
+          throw mainError
+        }
+        console.log(`✅ Deleted from ${mainTable}`)
       }
       
       // Delete from request table
+      console.log(`🗑️ Deleting from ${requestTable} table...`)
       const { error: requestError } = await supabase
         .from(requestTable)
         .delete()
         .eq('id', id)
 
-      if (requestError) throw requestError
+      if (requestError) {
+        console.error(`❌ Error deleting from ${requestTable}:`, requestError)
+        throw requestError
+      }
 
+      console.log(`✅ Successfully deleted request ID: ${id}`)
       showSuccessAlert('Berhasil!', 'Permintaan dan data terkait berhasil dihapus')
       setSelectedRequest(null)
       fetchRequests()
     } catch (error) {
-      console.error('Error deleting request:', error)
-      showErrorAlert('Error', 'Gagal menghapus permintaan')
+      console.error('❌ Error deleting request:', error)
+      showErrorAlert('Error', `Gagal menghapus permintaan: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
