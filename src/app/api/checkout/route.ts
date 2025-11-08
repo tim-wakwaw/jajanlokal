@@ -2,20 +2,28 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createXenditInvoice } from '@/lib/xendit';
 import { createClient } from '@supabase/supabase-js';
 
-// Use service role client to bypass RLS
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
+// Function to get supabase admin client
+function getSupabaseAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  return createClient(supabaseUrl, supabaseKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false
     }
-  }
-);
+  });
+}
 
 export async function POST(request: NextRequest) {
   try {
+    // Get supabase admin client
+    const supabaseAdmin = getSupabaseAdmin();
+
     const body = await request.json();
     const {
       userId,
