@@ -1,13 +1,16 @@
 import Xendit from 'xendit-node';
 
-if (!process.env.XENDIT_SECRET_KEY) {
-  throw new Error('XENDIT_SECRET_KEY is not defined in environment variables');
+// Check for Xendit secret key with fallback for build time
+const xenditSecretKey = process.env.XENDIT_SECRET_KEY;
+
+if (!xenditSecretKey && process.env.NODE_ENV !== 'development') {
+  console.warn('XENDIT_SECRET_KEY is not defined in environment variables');
 }
 
-// Initialize Xendit client
-const xenditClient = new Xendit({
-  secretKey: process.env.XENDIT_SECRET_KEY,
-});
+// Initialize Xendit client only if secret key is available
+const xenditClient = xenditSecretKey ? new Xendit({
+  secretKey: xenditSecretKey,
+}) : null;
 
 export interface CreateInvoiceParams {
   orderId: string;
@@ -37,6 +40,10 @@ export async function createXenditInvoice(
   params: CreateInvoiceParams
 ): Promise<XenditInvoiceResponse> {
   try {
+    if (!xenditClient) {
+      throw new Error('Xendit client not initialized - XENDIT_SECRET_KEY missing');
+    }
+
     const { Invoice } = xenditClient;
 
     // Create invoice with proper SDK structure
