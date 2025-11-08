@@ -10,15 +10,17 @@ import { cn } from '@/lib/utils';
 import UMKMDetailOverview from './UMKMDetailOverview';
 import UMKMDetailProduct from './UMKMDetailProduct';
 import UMKMDetailReview from './UMKMDetailReview';
-import { getSimilarUMKM } from '@/lib/recommendations';
+import { getSimilarUMKMByUMKM } from '@/lib/recommendations';
 
 // Simple UMKM List Component  
 const SimpleUMKMList = ({ umkmId }: { umkmId: string }) => {
-  const [similarProducts, setSimilarProducts] = React.useState<Array<{
+  const [similarUMKM, setSimilarUMKM] = React.useState<Array<{
     id: string;
     name: string; 
-    price: number;
-    umkm?: { name: string; category: string };
+    category: string;
+    image?: string;
+    rating?: number;
+    alamat?: string;
   }>>([]);
   const [loading, setLoading] = React.useState(true);
 
@@ -26,9 +28,10 @@ const SimpleUMKMList = ({ umkmId }: { umkmId: string }) => {
     const fetchSimilar = async () => {
       console.log('🏪 SimpleUMKMList fetching for:', umkmId);
       try {
-        const products = await getSimilarUMKM(umkmId, 6);
-        console.log('🏪 SimpleUMKMList got products:', products);
-        setSimilarProducts(products);
+        // getSimilarUMKMByUMKM returns UMKM data directly
+        const umkmData = await getSimilarUMKMByUMKM(umkmId, 6);
+        console.log('🏪 SimpleUMKMList got UMKM:', umkmData);
+        setSimilarUMKM(umkmData);
       } catch (error) {
         console.error('🏪 SimpleUMKMList error:', error);
       } finally {
@@ -41,39 +44,71 @@ const SimpleUMKMList = ({ umkmId }: { umkmId: string }) => {
 
   if (loading) {
     return (
-      <div className="text-white/70">
-        Loading UMKM serupa...
+      <div className="text-white/70 text-center py-8">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+        <p className="mt-2">Loading UMKM serupa...</p>
       </div>
     );
   }
 
-  if (similarProducts.length === 0) {
+  if (similarUMKM.length === 0) {
     return (
-      <div className="text-white/70">
-        Tidak ada UMKM serupa ditemukan.
+      <div className="text-white/70 text-center py-8">
+        <IconBuildingStore className="w-12 h-12 mx-auto mb-2 opacity-50" />
+        <p>Tidak ada UMKM serupa ditemukan.</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-3">
-      {similarProducts.map((product) => (
-        <div key={product.id} className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-linear-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold shrink-0">
-              {product.name.charAt(0).toUpperCase()}
-            </div>
-            <div className="flex-1 min-w-0">
-              <h4 className="text-white font-semibold text-sm truncate">{product.name}</h4>
-              <p className="text-white/80 text-xs truncate">
-                {product.umkm?.name} • {product.umkm?.category}
-              </p>
-              <p className="text-blue-300 font-bold text-sm">
-                Rp {product.price?.toLocaleString('id-ID')}
-              </p>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      {similarUMKM.map((umkm) => (
+        <motion.div 
+          key={umkm.id}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden border border-white/20 hover:border-white/40 transition-all cursor-pointer"
+        >
+          {/* UMKM Image */}
+          <div className="relative w-full h-32 bg-linear-to-br from-blue-500/20 to-purple-600/20">
+            {umkm.image ? (
+              <LazyImage
+                src={umkm.image}
+                alt={umkm.name}
+                fill
+                className="object-cover"
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <IconBuildingStore className="w-12 h-12 text-white/40" />
+              </div>
+            )}
+          </div>
+
+          {/* UMKM Info */}
+          <div className="p-3">
+            <h4 className="text-white font-semibold text-sm truncate mb-1">
+              {umkm.name}
+            </h4>
+            <p className="text-white/70 text-xs truncate mb-2">
+              {umkm.category}
+            </p>
+            
+            {/* Rating & Location */}
+            <div className="flex items-center justify-between text-xs">
+              {umkm.rating && (
+                <span className="text-yellow-400 flex items-center gap-1">
+                  ⭐ {umkm.rating.toFixed(1)}
+                </span>
+              )}
+              {umkm.alamat && (
+                <span className="text-white/60 truncate flex-1 ml-2">
+                  {umkm.alamat.split(',')[0]}
+                </span>
+              )}
             </div>
           </div>
-        </div>
+        </motion.div>
       ))}
     </div>
   );
@@ -243,7 +278,6 @@ export const UMKMDetailCard: React.FC<UMKMDetailCardProps> = ({ umkm, onClose, c
                     {activeTab === 'review' && <UMKMDetailReview umkm={umkm} />}
                     {activeTab === 'similar' && (
                       <div className="p-4 space-y-4">
-                        <h3 className="text-xl font-bold text-white mb-4">🏪 UMKM Serupa</h3>
                         <SimpleUMKMList umkmId={umkm.id.toString()} />
                       </div>
                     )}

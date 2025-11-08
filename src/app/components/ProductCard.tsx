@@ -145,14 +145,14 @@ export default function ProductCard({
 
   return (
     <div
-      className={`group relative ${className} hover:-translate-y-2 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300`}
+      className={`group relative ${className} hover:-translate-y-2 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 h-full`}
       style={{ pointerEvents: 'auto' }}
     >
       {/* Glowing Background Effect */}
       <div className="absolute -inset-0.5 bg-linear-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur"></div>
       
       {/* Main Card */}
-      <div className="relative bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-neutral-700/50 overflow-hidden transition-all duration-500 group-hover:shadow-2xl">
+      <div className="relative bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-neutral-700/50 overflow-hidden transition-all duration-500 group-hover:shadow-2xl h-full flex flex-col">
         
         {/* Product Image Container */}
         <div className="relative aspect-square overflow-hidden bg-linear-to-br from-neutral-100 to-neutral-200 dark:from-neutral-800 dark:to-neutral-900">
@@ -242,9 +242,9 @@ export default function ProductCard({
         </div>
 
         {/* Product Info */}
-        <div className="p-6">
+        <div className="p-6 flex flex-col flex-1">
           {/* Product Name */}
-          <h3 className="font-bold text-xl text-neutral-900 dark:text-neutral-100 mb-3 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">
+          <h3 className="font-bold text-xl text-neutral-900 dark:text-neutral-100 mb-3 line-clamp-2 min-h-14 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">
             {product.name}
           </h3>
 
@@ -256,17 +256,17 @@ export default function ProductCard({
           </div>
 
           {/* UMKM Info */}
-          <div className="border-t border-neutral-200 dark:border-neutral-700 pt-4 mb-4">
+          <div className="border-t border-neutral-200 dark:border-neutral-700 pt-4 mb-4 flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <MapPin className="h-4 w-4 text-neutral-400" />
-              <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
+              <MapPin className="h-4 w-4 text-neutral-400 shrink-0" />
+              <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400 line-clamp-1">
                 {product.umkmName}
               </span>
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 mt-auto">
             <button
               type="button"
               onClick={handleAddToCart}

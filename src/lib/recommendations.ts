@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import Fuse from 'fuse.js';
 
 interface OrderProduct {
   product_id: string;
@@ -41,7 +42,54 @@ interface ProductWithUMKM extends Product {
 }
 
 // ========================================
-// 1. CONTENT-BASED FILTERING
+// AI-POWERED RECOMMENDATION ENGINE
+// Using Fuse.js for fuzzy matching & content similarity
+// ========================================
+
+/**
+ * Calculate similarity score between two products using multiple factors
+ * Returns a score between 0-100 (higher is more similar)
+ */
+function calculateSimilarityScore(
+  product: ProductWithUMKM,
+  reference: ProductWithUMKM
+): number {
+  let score = 0;
+  
+  // 1. Category similarity (40 points)
+  if (product.umkm?.category === reference.umkm?.category) {
+    score += 40;
+  }
+  
+  // 2. Price similarity (30 points)
+  const priceDiff = Math.abs(product.price - reference.price);
+  const avgPrice = (product.price + reference.price) / 2;
+  const priceSimPct = Math.max(0, 1 - (priceDiff / avgPrice));
+  score += priceSimPct * 30;
+  
+  // 3. Name/Description similarity using Fuse.js (20 points)
+  const searchText = `${product.name} ${product.description || ''}`;
+  const refText = `${reference.name} ${reference.description || ''}`;
+  const fuse = new Fuse([{ text: refText }], {
+    keys: ['text'],
+    threshold: 0.4,
+    includeScore: true,
+  });
+  const fuseResult = fuse.search(searchText);
+  if (fuseResult.length > 0 && fuseResult[0].score !== undefined) {
+    score += (1 - fuseResult[0].score) * 20;
+  }
+  
+  // 4. Same UMKM bonus (10 points)
+  if (product.umkm_id === reference.umkm_id) {
+    score += 10;
+  }
+  
+  return score;
+}
+
+// ========================================
+// 1. AI-ENHANCED CONTENT-BASED FILTERING
 // ========================================
 export async function getSimilarProducts(productId: string, limit: number = 4): Promise<ProductWithUMKM[]> {
   try {
@@ -56,70 +104,65 @@ export async function getSimilarProducts(productId: string, limit: number = 4): 
       .single();
 
     if (refError || !referenceProduct) {
-      console.error('Reference product not found:', refError);
+      console.error('❌ Reference product not found:', refError);
       return [];
     }
 
-    // Find similar products from the same UMKM first
-    const { data: sameUmkmProducts, error: sameUmkmError } = await supabase
+    console.log('🎯 AI Recommendation for:', referenceProduct.name);
+
+    // Get ALL available products (we'll rank them with AI)
+    const { data: allProducts, error: productsError } = await supabase
       .from('products')
       .select(`
         *,
         umkm (*)
       `)
-      .eq('umkm_id', referenceProduct.umkm_id)
       .neq('id', productId)
       .eq('is_available', true)
-      .limit(2);
+      .limit(50); // Get a good pool to rank from
 
-    if (sameUmkmError) {
-      console.error('Same UMKM products error:', sameUmkmError);
+    if (productsError || !allProducts) {
+      console.error('❌ Products fetch error:', productsError);
+      return [];
     }
 
-    // Find products in similar price range from other UMKMs
-    const priceRange = referenceProduct.price * 0.3; // 30% price range
-    const { data: similarPriceProducts, error: priceError } = await supabase
-      .from('products')
-      .select(`
-        *,
-        umkm (*)
-      `)
-      .neq('umkm_id', referenceProduct.umkm_id)
-      .gte('price', referenceProduct.price - priceRange)
-      .lte('price', referenceProduct.price + priceRange)
-      .eq('is_available', true)
-      .limit(limit);
-
-    if (priceError) {
-      console.error('Similar price products error:', priceError);
-    }
-
-    // Combine and deduplicate results
-    const allSimilar = [
-      ...(sameUmkmProducts || []),
-      ...(similarPriceProducts || [])
-    ];
-
-    // Remove duplicates and limit results
-    const uniqueProducts = allSimilar
-      .filter((product, index, self) => 
-        self.findIndex(p => p.id === product.id) === index
+    // Calculate similarity scores for each product using AI algorithm
+    const scoredProducts = allProducts.map(product => ({
+      ...product,
+      similarityScore: calculateSimilarityScore(
+        product as ProductWithUMKM,
+        referenceProduct as ProductWithUMKM
       )
-      .slice(0, limit);
+    }));
 
-    return uniqueProducts as ProductWithUMKM[];
+    // Sort by similarity score (highest first)
+    scoredProducts.sort((a, b) => b.similarityScore - a.similarityScore);
+
+    // Log top recommendations for debugging
+    console.log('🤖 Top AI Recommendations:');
+    scoredProducts.slice(0, limit).forEach((p, i) => {
+      console.log(`${i + 1}. ${p.name} (Score: ${p.similarityScore.toFixed(1)})`);
+    });
+
+    // Return top N most similar products
+    return scoredProducts.slice(0, limit) as ProductWithUMKM[];
   } catch (error) {
-    console.error('Error in getSimilarProducts:', error);
+    console.error('❌ Error in AI getSimilarProducts:', error);
     return [];
   }
 }
 
 // ========================================
-// 2. COLLABORATIVE FILTERING (UMKM-based)
+// 2. AI-ENHANCED COLLABORATIVE FILTERING (UMKM-based)
 // ========================================
-export async function getSimilarUMKM(umkmId: string, limit: number = 4): Promise<ProductWithUMKM[]> {
+
+/**
+ * Get similar UMKMs based on AI similarity scoring
+ * Returns UMKM data directly (not products)
+ */
+export async function getSimilarUMKMByUMKM(umkmId: string, limit: number = 6): Promise<UMKM[]> {
   try {
-    console.log('🏪 Starting getSimilarUMKM for:', umkmId);
+    console.log('🏪 Starting AI-powered getSimilarUMKMByUMKM for:', umkmId);
     
     // Get the reference UMKM
     const { data: referenceUMKM, error: refError } = await supabase
@@ -129,14 +172,105 @@ export async function getSimilarUMKM(umkmId: string, limit: number = 4): Promise
       .single();
 
     if (refError || !referenceUMKM) {
-      console.error('🏪 Reference UMKM not found:', refError);
+      console.error('❌ Reference UMKM not found:', refError);
       return [];
     }
 
     console.log('🏪 Reference UMKM:', referenceUMKM.name, 'Category:', referenceUMKM.category);
 
-    // Find products from UMKMs in the same category (excluding current UMKM)
-    const { data: similarProducts, error: similarError } = await supabase
+    // Get all other UMKMs
+    const { data: allUMKMs, error: umkmsError } = await supabase
+      .from('umkm')
+      .select('*')
+      .neq('id', umkmId)
+      .limit(50);
+
+    if (umkmsError || !allUMKMs) {
+      console.error('❌ UMKMs fetch error:', umkmsError);
+      return [];
+    }
+
+    // Use Fuse.js to find similar UMKMs
+    const fuse = new Fuse(allUMKMs, {
+      keys: [
+        { name: 'name', weight: 0.4 },
+        { name: 'description', weight: 0.3 },
+        { name: 'category', weight: 0.3 },
+      ],
+      threshold: 0.5,
+      includeScore: true,
+    });
+
+    const searchText = `${referenceUMKM.name} ${referenceUMKM.description || ''} ${referenceUMKM.category}`;
+    const fuseResults = fuse.search(searchText);
+
+    // Score each UMKM based on multiple factors
+    const scoredUMKMs = fuseResults.map(result => {
+      const umkm = result.item as UMKM;
+      let score = 0;
+
+      // 1. Fuse.js similarity (40 points)
+      score += (1 - (result.score || 0)) * 40;
+
+      // 2. Category exact match (35 points)
+      if (umkm.category === referenceUMKM.category) {
+        score += 35;
+      }
+
+      // 3. Rating bonus (15 points)
+      score += ((umkm.rating || 0) / 5) * 15;
+
+      // 4. Location proximity bonus (10 points)
+      if (umkm.lat && umkm.lng && referenceUMKM.lat && referenceUMKM.lng) {
+        const distance = Math.sqrt(
+          Math.pow(umkm.lat - referenceUMKM.lat, 2) + 
+          Math.pow(umkm.lng - referenceUMKM.lng, 2)
+        );
+        // Closer = higher score (max 10 points within ~0.1 degree)
+        score += Math.max(0, 10 - distance * 100);
+      }
+
+      return { ...umkm, aiScore: score };
+    });
+
+    // Sort by AI score
+    scoredUMKMs.sort((a, b) => b.aiScore - a.aiScore);
+
+    console.log('🤖 Top Similar UMKMs:');
+    scoredUMKMs.slice(0, limit).forEach((u, i) => {
+      console.log(`${i + 1}. ${u.name} - ${u.category} (Score: ${u.aiScore.toFixed(1)})`);
+    });
+
+    return scoredUMKMs.slice(0, limit);
+  } catch (error) {
+    console.error('❌ Error in AI getSimilarUMKMByUMKM:', error);
+    return [];
+  }
+}
+
+/**
+ * Get similar products from different UMKMs (old function - kept for compatibility)
+ */
+export async function getSimilarUMKM(umkmId: string, limit: number = 4): Promise<ProductWithUMKM[]> {
+  try {
+    console.log('🏪 Starting AI-powered getSimilarUMKM for:', umkmId);
+    
+    // Get the reference UMKM
+    const { data: referenceUMKM, error: refError } = await supabase
+      .from('umkm')
+      .select('*')
+      .eq('id', umkmId)
+      .single();
+
+    if (refError || !referenceUMKM) {
+      console.error('❌ Reference UMKM not found:', refError);
+      return [];
+    }
+
+    console.log('🏪 Reference UMKM:', referenceUMKM.name, 'Category:', referenceUMKM.category);
+
+    // Get products from other UMKMs
+    const { data: allProducts, error: productsError } = await supabase
       .from('products')
       .select(`
         *,
@@ -144,25 +278,63 @@ export async function getSimilarUMKM(umkmId: string, limit: number = 4): Promise
       `)
       .eq('is_available', true)
       .neq('umkm_id', umkmId)
-      .order('created_at', { ascending: false })
-      .limit(limit * 3); // Get more to filter by category
+      .limit(50);
 
-    if (similarError) {
-      console.error('🏪 Similar products error:', similarError);
+    if (productsError || !allProducts) {
+      console.error('❌ Products fetch error:', productsError);
       return [];
     }
 
-    // Filter by same category and prioritize by UMKM rating
-    const filteredProducts = (similarProducts || [])
-      .filter(product => product.umkm?.category === referenceUMKM.category)
-      .sort((a, b) => (b.umkm?.rating || 0) - (a.umkm?.rating || 0))
-      .slice(0, limit);
+    // Use Fuse.js to find UMKMs with similar names/descriptions
+    const fuse = new Fuse(allProducts, {
+      keys: [
+        { name: 'umkm.name', weight: 0.4 },
+        { name: 'umkm.description', weight: 0.2 },
+        { name: 'umkm.category', weight: 0.4 },
+      ],
+      threshold: 0.4,
+      includeScore: true,
+    });
 
-    console.log('🏪 Found similar products:', filteredProducts.map(p => `${p.name} (${p.umkm?.name})`));
+    const searchText = `${referenceUMKM.name} ${referenceUMKM.description || ''} ${referenceUMKM.category}`;
+    const fuseResults = fuse.search(searchText);
 
-    return filteredProducts as ProductWithUMKM[];
+    // Score each product based on multiple factors
+    const scoredProducts = fuseResults.map(result => {
+      const product = result.item as ProductWithUMKM;
+      let score = 0;
+
+      // 1. Fuse.js similarity (40 points)
+      score += (1 - (result.score || 0)) * 40;
+
+      // 2. Category exact match (30 points)
+      if (product.umkm?.category === referenceUMKM.category) {
+        score += 30;
+      }
+
+      // 3. Rating bonus (20 points)
+      score += ((product.umkm?.rating || 0) / 5) * 20;
+
+      // 4. Recency bonus (10 points)
+      const daysSinceCreated = Math.floor(
+        (Date.now() - new Date(product.created_at).getTime()) / (1000 * 60 * 60 * 24)
+      );
+      score += Math.max(0, 10 - daysSinceCreated * 0.1);
+
+      return { ...product, aiScore: score };
+    });
+
+    // Sort by AI score
+    scoredProducts.sort((a, b) => b.aiScore - a.aiScore);
+
+    console.log('🤖 Top UMKM Recommendations:');
+    scoredProducts.slice(0, limit).forEach((p, i) => {
+      console.log(`${i + 1}. ${p.name} from ${p.umkm?.name} (Score: ${p.aiScore.toFixed(1)})`);
+    });
+
+    return scoredProducts.slice(0, limit) as ProductWithUMKM[];
   } catch (error) {
-    console.error('Error in getSimilarUMKM:', error);
+    console.error('❌ Error in AI getSimilarUMKM:', error);
     return [];
   }
 }
