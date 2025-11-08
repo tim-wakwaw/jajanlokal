@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { TracingBeam } from "@/components/ui/tracing-beam";
 import { motion } from "motion/react";
 
@@ -38,10 +39,15 @@ export default function AboutPage() {
               </p>
 
               <div className="text-sm prose prose-sm dark:prose-invert">
-                <div className="rounded-lg mb-6 h-48 bg-linear-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-6xl mb-2">🏪</div>
-                    <p className="text-sm text-neutral-600 dark:text-neutral-400">UMKM Indonesia</p>
+                <div className="rounded-lg mb-6 h-64 bg-linear-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 flex items-center justify-center overflow-hidden relative">
+                  <Image 
+                    src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80"
+                    alt="UMKM Indonesia - Toko Lokal"
+                    fill
+                    className="object-cover opacity-90 dark:opacity-70"
+                  />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent flex items-end justify-center pb-4">
+                    <p className="text-sm font-semibold text-white">UMKM Indonesia</p>
                   </div>
                 </div>
                 
@@ -68,18 +74,33 @@ export default function AboutPage() {
               </p>
 
               <div className="text-sm prose prose-sm dark:prose-invert">
-                <div className="rounded-lg mb-6 h-48 bg-linear-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-6xl mb-2">🎯</div>
-                    <p className="text-sm text-neutral-600 dark:text-neutral-400">Misi JajanLokal</p>
+                <div className="rounded-lg mb-6 h-64 bg-linear-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 flex items-center justify-center overflow-hidden relative">
+                  <Image 
+                    src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&q=80"
+                    alt="Misi JajanLokal - Tim Kolaborasi"
+                    fill
+                    className="object-cover opacity-90 dark:opacity-70"
+                  />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent flex items-end justify-center pb-4">
+                    <p className="text-sm font-semibold text-white">Misi JajanLokal</p>
                   </div>
                 </div>
                 
                 <div className="space-y-4">
                   <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                    <h3 className="font-bold text-blue-700 dark:text-blue-400 mb-2">
-                      🎯 Aksesibilitas Digital
-                    </h3>
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 rounded-lg bg-blue-200 dark:bg-blue-800/50 relative overflow-hidden">
+                        <Image 
+                          src="https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=100&q=80"
+                          alt="Aksesibilitas Digital"
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      <h3 className="font-bold text-blue-700 dark:text-blue-400">
+                        Aksesibilitas Digital
+                      </h3>
+                    </div>
                     <p className="text-neutral-700 dark:text-neutral-300">
                       Memberikan platform yang mudah digunakan bagi UMKM untuk memiliki kehadiran online 
                       tanpa perlu keahlian teknis yang rumit.
@@ -87,9 +108,19 @@ export default function AboutPage() {
                   </div>
 
                   <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
-                    <h3 className="font-bold text-purple-700 dark:text-purple-400 mb-2">
-                      🤝 Koneksi Lokal
-                    </h3>
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 rounded-lg bg-purple-200 dark:bg-purple-800/50 relative overflow-hidden">
+                        <Image 
+                          src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=100&q=80"
+                          alt="Koneksi Lokal"
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      <h3 className="font-bold text-purple-700 dark:text-purple-400">
+                        Koneksi Lokal
+                      </h3>
+                    </div>
                     <p className="text-neutral-700 dark:text-neutral-300">
                       Menghubungkan pelanggan dengan UMKM di sekitar mereka melalui peta interaktif 
                       dan sistem pencarian yang cerdas.
@@ -97,9 +128,19 @@ export default function AboutPage() {
                   </div>
 
                   <div className="bg-pink-50 dark:bg-pink-900/20 p-4 rounded-lg">
-                    <h3 className="font-bold text-pink-700 dark:text-pink-400 mb-2">
-                      📈 Pertumbuhan Berkelanjutan
-                    </h3>
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 rounded-lg bg-pink-200 dark:bg-pink-800/50 relative overflow-hidden">
+                        <Image 
+                          src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=100&q=80"
+                          alt="Pertumbuhan Berkelanjutan"
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      <h3 className="font-bold text-pink-700 dark:text-pink-400">
+                        Pertumbuhan Berkelanjutan
+                      </h3>
+                    </div>
                     <p className="text-neutral-700 dark:text-neutral-300">
                       Menyediakan tools dan insights untuk membantu UMKM menganalisis performa 
                       dan mengembangkan strategi bisnis yang lebih baik.
@@ -120,16 +161,28 @@ export default function AboutPage() {
               </p>
 
               <div className="text-sm prose prose-sm dark:prose-invert">
-                <div className="rounded-lg mb-6 h-48 bg-linear-to-r from-pink-100 to-blue-100 dark:from-pink-900/30 dark:to-blue-900/30 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-6xl mb-2">⚡</div>
-                    <p className="text-sm text-neutral-600 dark:text-neutral-400">Fitur Platform</p>
+                <div className="rounded-lg mb-6 h-64 bg-linear-to-r from-pink-100 to-blue-100 dark:from-pink-900/30 dark:to-blue-900/30 flex items-center justify-center overflow-hidden relative">
+                  <Image 
+                    src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80"
+                    alt="Fitur Platform - Dashboard & Analytics"
+                    fill
+                    className="object-cover opacity-90 dark:opacity-70"
+                  />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent flex items-end justify-center pb-4">
+                    <p className="text-sm font-semibold text-white">Fitur Platform</p>
                   </div>
                 </div>
                 
                 <ul className="space-y-3 text-neutral-700 dark:text-neutral-300">
                   <li className="flex items-start gap-3">
-                    <span className="text-2xl">🗺️</span>
+                    <div className="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0 relative overflow-hidden">
+                      <Image 
+                        src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=100&q=80"
+                        alt="Peta UMKM"
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
                     <div>
                       <strong>Peta UMKM Interaktif</strong>
                       <p>Temukan UMKM terdekat dengan visualisasi peta yang mudah digunakan</p>
@@ -137,7 +190,14 @@ export default function AboutPage() {
                   </li>
                   
                   <li className="flex items-start gap-3">
-                    <span className="text-2xl">🛍️</span>
+                    <div className="w-12 h-12 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center shrink-0 relative overflow-hidden">
+                      <Image 
+                        src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=100&q=80"
+                        alt="Katalog Produk"
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
                     <div>
                       <strong>Katalog Produk Digital</strong>
                       <p>Tampilkan produk dengan foto berkualitas dan deskripsi detail</p>
@@ -145,7 +205,14 @@ export default function AboutPage() {
                   </li>
                   
                   <li className="flex items-start gap-3">
-                    <span className="text-2xl">💬</span>
+                    <div className="w-12 h-12 rounded-lg bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center shrink-0 relative overflow-hidden">
+                      <Image 
+                        src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=100&q=80"
+                        alt="Review & Rating"
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
                     <div>
                       <strong>Review & Rating</strong>
                       <p>Sistem review transparan untuk membangun kepercayaan pelanggan</p>
@@ -153,7 +220,14 @@ export default function AboutPage() {
                   </li>
                   
                   <li className="flex items-start gap-3">
-                    <span className="text-2xl">📊</span>
+                    <div className="w-12 h-12 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0 relative overflow-hidden">
+                      <Image 
+                        src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=100&q=80"
+                        alt="Dashboard Admin"
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
                     <div>
                       <strong>Dashboard Admin</strong>
                       <p>Kelola toko, produk, dan pesanan dengan mudah dari satu tempat</p>
@@ -174,10 +248,15 @@ export default function AboutPage() {
               </p>
 
               <div className="text-sm prose prose-sm dark:prose-invert">
-                <div className="rounded-lg mb-6 h-48 bg-linear-to-r from-green-100 to-blue-100 dark:from-green-900/30 dark:to-blue-900/30 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-6xl mb-2">📈</div>
-                    <p className="text-sm text-neutral-600 dark:text-neutral-400">Dampak Positif</p>
+                <div className="rounded-lg mb-6 h-64 bg-linear-to-r from-green-100 to-blue-100 dark:from-green-900/30 dark:to-blue-900/30 flex items-center justify-center overflow-hidden relative">
+                  <Image 
+                    src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80"
+                    alt="Dampak Positif - Grafik Pertumbuhan"
+                    fill
+                    className="object-cover opacity-90 dark:opacity-70"
+                  />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent flex items-end justify-center pb-4">
+                    <p className="text-sm font-semibold text-white">Dampak Positif</p>
                   </div>
                 </div>
                 
@@ -222,10 +301,15 @@ export default function AboutPage() {
               </p>
 
               <div className="text-sm prose prose-sm dark:prose-invert">
-                <div className="rounded-lg mb-6 h-48 bg-linear-to-r from-blue-100 to-green-100 dark:from-blue-900/30 dark:to-green-900/30 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-6xl mb-2">🤝</div>
-                    <p className="text-sm text-neutral-600 dark:text-neutral-400">Bergabung Bersama</p>
+                <div className="rounded-lg mb-6 h-64 bg-linear-to-r from-blue-100 to-green-100 dark:from-blue-900/30 dark:to-green-900/30 flex items-center justify-center overflow-hidden relative">
+                  <Image 
+                    src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=800&q=80"
+                    alt="Bergabung Bersama - Kolaborasi & Partnership"
+                    fill
+                    className="object-cover opacity-90 dark:opacity-70"
+                  />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent flex items-end justify-center pb-4">
+                    <p className="text-sm font-semibold text-white">Bergabung Bersama</p>
                   </div>
                 </div>
                 
