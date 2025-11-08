@@ -6,10 +6,23 @@ interface LazyImageProps {
   src: string;
   alt: string;
   className?: string;
-  eager?: boolean; 
+  eager?: boolean;
+  fill?: boolean;
+  width?: number;
+  height?: number;
+  placeholderClassName?: string;
 }
 
-export default function LazyImage({ src, alt, className, eager = false }: LazyImageProps) { // <-- 2. Terima propnya
+export default function LazyImage({ 
+  src, 
+  alt, 
+  className, 
+  eager = false, 
+  fill = false,
+  width,
+  height,
+  placeholderClassName
+}: LazyImageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isInView, setIsInView] = useState(eager); 
   const [hasError, setHasError] = useState(false);
@@ -44,11 +57,19 @@ export default function LazyImage({ src, alt, className, eager = false }: LazyIm
     }
   }, [isInView, src]);
 
+  const containerStyle = fill 
+    ? { position: 'absolute', inset: 0 } 
+    : { width, height };
+
   return (
-    <div ref={imgRef} className={`relative overflow-hidden ${className}`}>
+    <div 
+      ref={imgRef} 
+      className={`relative overflow-hidden ${className}`}
+      style={containerStyle as React.CSSProperties}
+    >
       {/* Loading skeleton */}
       {!isLoaded && !hasError && (
-        <div className="absolute inset-0 bg-linear-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse dark:from-gray-700 dark:via-gray-800 dark:to-gray-700" />
+        <div className={`absolute inset-0 bg-linear-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse dark:from-gray-700 dark:via-gray-800 dark:to-gray-700 ${placeholderClassName}`} />
       )}
       
       {/* Error fallback */}
