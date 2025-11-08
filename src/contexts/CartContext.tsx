@@ -21,7 +21,14 @@ interface CartContextType {
   cartCount: number
   cartTotal: number
   loading: boolean
-  addToCart: (productId: string, quantity?: number) => Promise<void>
+  addToCart: (
+    productId: string, 
+    quantity?: number,
+    productName?: string,
+    price?: number,
+    imageUrl?: string,
+    umkmName?: string
+  ) => Promise<void>
   updateQuantity: (productId: string, quantity: number) => Promise<void>
   removeFromCart: (productId: string) => Promise<void>
   clearCart: () => Promise<void>
@@ -42,6 +49,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       return
     }
 
+    console.log('🔄 refreshCart called for user:', user.id)
     setLoading(true)
     try {
       // Get cart items first
@@ -57,6 +65,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setCartItems([])
         return
       }
+
+      console.log('🔄 Cart items from DB:', cartData?.length || 0, 'items')
 
       if (!cartData || cartData.length === 0) {
         setCartItems([])
@@ -98,6 +108,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         }
       })
 
+      console.log('🔄 Setting cart items:', formattedItems.length)
       setCartItems(formattedItems)
     } catch (error: unknown) {
       console.error('Error fetching cart:', error)
@@ -121,14 +132,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       throw new Error('User not authenticated')
     }
 
+    console.log('🛒 addToCart called:', { productId, quantity, productName })
+
     try {
       // Check if item already in cart
       const existingItem = cartItems.find(item => item.product_id === productId)
       
       if (existingItem) {
+        console.log('🛒 Item exists, updating quantity:', existingItem.quantity + quantity)
         // Update quantity
         await updateQuantity(productId, existingItem.quantity + quantity)
       } else {
+        console.log('🛒 New item, inserting to cart_items...')
         // Add new item to cart_items
         const { error } = await supabase
           .from('cart_items')
@@ -144,11 +159,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
         if (error) throw error
 
+        console.log('🛒 Insert successful, refreshing cart...')
         await refreshCart()
+        console.log('🛒 Cart refreshed!')
         showToast('Produk ditambahkan ke keranjang', 'success')
       }
     } catch (error: unknown) {
-      console.error('Error adding to cart:', error)
+      console.error('❌ Error adding to cart:', error)
       const errorMessage = error instanceof Error ? error.message : 'Gagal menambahkan ke keranjang'
       showErrorAlert('Error', errorMessage)
       throw error
@@ -239,23 +256,29 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!user) return
 
+    console.log('🔔 Setting up real-time cart subscription for user:', user.id)
+
     const channel = supabase
-      .channel('shopping-cart-changes')
+      .channel('cart-items-changes')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'shopping_cart',
+          table: 'cart_items',
           filter: `user_id=eq.${user.id}`
         },
-        () => {
+        (payload) => {
+          console.log('🔔 Cart updated! Event:', payload.eventType)
           refreshCart()
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        console.log('🔔 Subscription status:', status)
+      })
 
     return () => {
+      console.log('🔔 Cleaning up cart subscription')
       supabase.removeChannel(channel)
     }
   }, [user, refreshCart])

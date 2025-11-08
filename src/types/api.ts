@@ -2,7 +2,7 @@ export interface ProductRequestData {
   id: string
   name: string
   price: number
-  image_url: string
+  image: string
   stock: number
   is_available: boolean
   description: string
