@@ -4,24 +4,16 @@ import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import Image from "next/image";
 import { useAuth } from "@/contexts/OptimizedAuthContext";
+import { useCart } from "@/contexts/CartContext";
 import { useRouter } from "next/navigation";
 import { showErrorAlert, showSuccessAlert } from "@/lib/sweetalert";
-
-interface CartItem {
-  id: string;
-  product_id: string;
-  product_name: string;
-  product_price: number;
-  product_image?: string;
-  umkm_name: string;
-  quantity: number;
-}
+import { SimilarProducts } from "../components/RecommendationSection";
 
 export default function CheckoutPage() {
   const { user } = useAuth();
+  const { cartItems, cartTotal, cartCount, refreshCart } = useCart();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
   // Form state
   const [customerName, setCustomerName] = useState("");
@@ -36,21 +28,19 @@ export default function CheckoutPage() {
       return;
     }
 
-    // Get cart items from CartContext or localStorage
-    const savedCart = localStorage.getItem(`cart_${user.id}`);
-    if (savedCart) {
-      const items = JSON.parse(savedCart);
-      setCartItems(items);
-    }
-
     // Pre-fill email from user
     setCustomerEmail(user.email || "");
-  }, [user, router]);
+    
+    // Refresh cart to get latest data
+    refreshCart();
+  }, [user, router, refreshCart]);
 
-  const totalAmount = cartItems.reduce(
-    (sum, item) => sum + item.product_price * item.quantity,
-    0
-  );
+  // Log cart changes for debugging
+  useEffect(() => {
+    console.log('🛒 Checkout - Cart items updated:', cartItems.length, 'items');
+    console.log('🛒 Checkout - Cart total:', cartTotal);
+    console.log('🛒 Checkout - Cart count:', cartCount);
+  }, [cartItems, cartTotal, cartCount]);
 
   const handleCheckout = async () => {
     if (!user) return;
@@ -308,13 +298,13 @@ export default function CheckoutPage() {
                     Subtotal
                   </span>
                   <span className="font-semibold">
-                    Rp {totalAmount.toLocaleString('id-ID')}
+                    Rp {cartTotal.toLocaleString('id-ID')}
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-lg font-bold">
                   <span>Total</span>
                   <span className="text-blue-600">
-                    Rp {totalAmount.toLocaleString('id-ID')}
+                    Rp {cartTotal.toLocaleString('id-ID')}
                   </span>
                 </div>
               </div>
@@ -361,6 +351,20 @@ export default function CheckoutPage() {
           </motion.div>
         </div>
       </div>
+
+      {/* 🤖 Recommendations Section */}
+      {cartItems.length > 0 && (
+        <section className="py-16 bg-linear-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+          <div className="max-w-7xl mx-auto px-4 space-y-16">
+            {/* Similar Products berdasarkan produk pertama di cart */}
+            <SimilarProducts 
+              productId={cartItems[0]?.product_id}
+              title="⭐ Produk Serupa"
+              className="space-y-8"
+            />
+          </div>
+        </section>
+      )}
     </div>
   );
 }

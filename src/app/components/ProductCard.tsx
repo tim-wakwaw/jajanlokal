@@ -2,25 +2,105 @@
 
 import { Star, MapPin, ShoppingCart, Heart } from "lucide-react";
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useCart } from "@/contexts/CartContext";
+import { showSuccessAlert, showErrorAlert } from "@/lib/sweetalert";
 
 interface Product {
+  id?: string;
   name: string;
   price: number;
   image?: string;
+  image_url?: string; // Support both naming conventions
   umkmName: string;
-  umkmId: number;
+  umkmId?: number | string;
   umkmCategory: string;
-  umkmRating: number;
+  umkmRating?: number;
+  stock?: number;
+  is_available?: boolean;
 }
 
 interface ProductCardProps {
   product: Product;
+  showReason?: boolean;
+  reason?: string;
+  className?: string;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ 
+  product, 
+  showReason = false, 
+  reason, 
+  className = "" 
+}: ProductCardProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const { addToCart } = useCart();
+
+  // Log setiap kali component di-render
+  useEffect(() => {
+    console.log('🔄 ProductCard rendered:', product.name, 'ID:', product.id);
+  }, [product.id, product.name]);
+
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('🛒 TOMBOL BELI DIKLIK!', product.name);
+    console.log('🛒 Event details:', {
+      type: e.type,
+      button: e.button,
+      target: e.target,
+      currentTarget: e.currentTarget
+    });
+    
+    if (adding) {
+      console.log('🛒 Sedang menambah, tunggu...');
+      return;
+    }
+    
+    setAdding(true);
+    
+    try {
+      console.log('🛒 Menambahkan ke cart:', {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image_url || product.image,
+        umkm: product.umkmName
+      });
+
+      await addToCart(
+        product.id || '',
+        1,
+        product.name,
+        product.price,
+        product.image_url || product.image,
+        product.umkmName
+      );
+      
+      console.log('✅ BERHASIL DITAMBAHKAN KE CART!');
+      
+      // Sweet Alert Success (CartContext sudah punya showToast, tapi kita tambah ini untuk lebih jelas)
+      await showSuccessAlert(
+        'Berhasil!',
+        `${product.name} berhasil ditambahkan ke keranjang`
+      );
+      
+    } catch (error) {
+      console.error('❌ ERROR MENAMBAH KE CART:', error);
+      
+      // Sweet Alert Error
+      await showErrorAlert(
+        'Gagal!',
+        'Terjadi kesalahan saat menambahkan produk ke keranjang'
+      );
+    } finally {
+      setAdding(false);
+      console.log('🛒 Adding state reset');
+    }
+  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -64,10 +144,9 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <motion.div
-      whileHover={{ y: -8, scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      className="group relative"
+    <div
+      className={`group relative ${className} hover:-translate-y-2 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300`}
+      style={{ pointerEvents: 'auto' }}
     >
       {/* Glowing Background Effect */}
       <div className="absolute -inset-0.5 bg-linear-to-r from-blue-500 via-purple-500 to-pink-500 rounded-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-500 blur"></div>
@@ -77,6 +156,28 @@ export default function ProductCard({ product }: ProductCardProps) {
         
         {/* Product Image Container */}
         <div className="relative aspect-square overflow-hidden bg-linear-to-br from-neutral-100 to-neutral-200 dark:from-neutral-800 dark:to-neutral-900">
+          {/* Recommendation Reason Badge */}
+          {showReason && reason && (
+            <div className="absolute top-2 left-2 z-20">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="px-3 py-1.5 bg-linear-to-r from-emerald-500 to-blue-500 text-white text-xs font-bold rounded-full shadow-lg backdrop-blur-sm border border-white/20"
+              >
+                {reason}
+              </motion.div>
+            </div>
+          )}
+
+          {/* Stock Warning Badge */}
+          {product.stock !== undefined && product.stock <= 5 && product.stock > 0 && (
+            <div className="absolute top-2 right-2 z-20">
+              <div className="px-2 py-1 bg-orange-500/90 text-white text-xs font-bold rounded-full backdrop-blur-sm">
+                Sisa {product.stock}
+              </div>
+            </div>
+          )}
+
           {/* Image */}
           <motion.img
             initial={{ opacity: 0, scale: 1.1 }}
@@ -85,7 +186,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               scale: imageLoaded ? 1 : 1.1 
             }}
             transition={{ duration: 0.5 }}
-            src={product.image || getPlaceholderImage(product.umkmCategory)}
+            src={product.image || product.image_url || getPlaceholderImage(product.umkmCategory)}
             alt={product.name}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
             onLoad={() => setImageLoaded(true)}
@@ -122,20 +223,22 @@ export default function ProductCard({ product }: ProductCardProps) {
           </motion.button>
 
           {/* Category Badge */}
-          <div className="absolute top-3 left-3">
-            <div className={`px-3 py-1.5 rounded-full bg-linear-to-r ${getCategoryColor(product.umkmCategory)} text-white text-xs font-bold shadow-lg backdrop-blur-sm flex items-center gap-1`}>
+          <div className="absolute top-3 left-3 z-10">
+            <div className={`px-3 py-1.5 rounded-full bg-linear-to-r ${getCategoryColor(product.umkmCategory)} text-white text-xs font-bold shadow-lg backdrop-blur-sm flex items-center gap-1 ${showReason ? 'mt-12' : ''}`}>
               <span>{getCategoryIcon(product.umkmCategory)}</span>
               <span>{product.umkmCategory}</span>
             </div>
           </div>
 
           {/* Rating Badge */}
-          <div className="absolute bottom-3 right-3 flex items-center gap-1 px-2 py-1 bg-white/90 dark:bg-neutral-800/90 backdrop-blur-sm rounded-full shadow-lg">
-            <Star className="h-4 w-4 text-yellow-400 fill-current" />
-            <span className="text-sm font-bold text-neutral-700 dark:text-neutral-300">
-              {product.umkmRating}
-            </span>
-          </div>
+          {product.umkmRating && (
+            <div className="absolute bottom-3 right-3 flex items-center gap-1 px-2 py-1 bg-white/90 dark:bg-neutral-800/90 backdrop-blur-sm rounded-full shadow-lg">
+              <Star className="h-4 w-4 text-yellow-400 fill-current" />
+              <span className="text-sm font-bold text-neutral-700 dark:text-neutral-300">
+                {product.umkmRating}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Product Info */}
@@ -164,14 +267,27 @@ export default function ProductCard({ product }: ProductCardProps) {
 
           {/* Action Buttons */}
           <div className="flex gap-2">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex-1 px-4 py-3 bg-linear-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-bold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={!product.is_available || (product.stock !== undefined && product.stock <= 0) || adding}
+              style={{ pointerEvents: 'auto', zIndex: 10 }}
+              className={`flex-1 px-4 py-3 font-bold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 ${
+                product.is_available && (product.stock === undefined || product.stock > 0) && !adding
+                  ? 'bg-linear-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white'
+                  : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+              }`}
             >
               <ShoppingCart className="h-4 w-4" />
-              <span>Beli</span>
-            </motion.button>
+              <span>
+                {adding 
+                  ? 'Menambah...'
+                  : product.is_available && (product.stock === undefined || product.stock > 0) 
+                    ? 'Beli' 
+                    : 'Habis'
+                }
+              </span>
+            </button>
             
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -188,6 +304,6 @@ export default function ProductCard({ product }: ProductCardProps) {
           <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
