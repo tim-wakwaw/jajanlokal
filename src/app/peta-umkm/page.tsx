@@ -430,8 +430,8 @@ export default function PetaUMKM() {
     });
 
     currentMap.once('locationerror', (e) => {
-        console.error("Gagal mendapatkan lokasi:", e.message);
-        alert(`Tidak dapat mengambil lokasi: ${e.message}`);
+        console.debug("Location not available:", e.message);
+        // Don't show alert for location errors - it's optional
     });
   };
   

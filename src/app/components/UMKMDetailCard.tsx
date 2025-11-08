@@ -5,11 +5,79 @@ import { motion, AnimatePresence } from 'motion/react';
 import { CardContainer, CardBody, CardItem } from './ui/3d-card';
 import LazyImage from './LazyImage'; 
 import { useOutsideClick } from '@/hooks/useOutsideClick'; 
-import { IconX, IconBuildingStore, IconMessage2, IconShoppingCart } from '@tabler/icons-react';
+import { IconX, IconBuildingStore, IconMessage2, IconShoppingCart, IconUsers } from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
 import UMKMDetailOverview from './UMKMDetailOverview';
 import UMKMDetailProduct from './UMKMDetailProduct';
 import UMKMDetailReview from './UMKMDetailReview';
+import { getSimilarUMKM } from '@/lib/recommendations';
+
+// Simple UMKM List Component  
+const SimpleUMKMList = ({ umkmId }: { umkmId: string }) => {
+  const [similarProducts, setSimilarProducts] = React.useState<Array<{
+    id: string;
+    name: string; 
+    price: number;
+    umkm?: { name: string; category: string };
+  }>>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchSimilar = async () => {
+      console.log('🏪 SimpleUMKMList fetching for:', umkmId);
+      try {
+        const products = await getSimilarUMKM(umkmId, 6);
+        console.log('🏪 SimpleUMKMList got products:', products);
+        setSimilarProducts(products);
+      } catch (error) {
+        console.error('🏪 SimpleUMKMList error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (umkmId) fetchSimilar();
+  }, [umkmId]);
+
+  if (loading) {
+    return (
+      <div className="text-white/70">
+        Loading UMKM serupa...
+      </div>
+    );
+  }
+
+  if (similarProducts.length === 0) {
+    return (
+      <div className="text-white/70">
+        Tidak ada UMKM serupa ditemukan.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {similarProducts.map((product) => (
+        <div key={product.id} className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-linear-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold shrink-0">
+              {product.name.charAt(0).toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="text-white font-semibold text-sm truncate">{product.name}</h4>
+              <p className="text-white/80 text-xs truncate">
+                {product.umkm?.name} • {product.umkm?.category}
+              </p>
+              <p className="text-blue-300 font-bold text-sm">
+                Rp {product.price?.toLocaleString('id-ID')}
+              </p>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 export interface Product { name: string; price: number; image?: string; }
 export interface Comment { user: string; text: string;}
@@ -34,7 +102,7 @@ interface UMKMDetailCardProps {
   className?: string;
 }
 
-type ActiveTab = 'overview' | 'product' | 'review';
+type ActiveTab = 'overview' | 'product' | 'review' | 'similar';
 
 interface TabButtonProps {
   label: string;
@@ -146,6 +214,12 @@ export const UMKMDetailCard: React.FC<UMKMDetailCardProps> = ({ umkm, onClose, c
                     isActive={activeTab === 'review'}
                     onClick={() => setActiveTab('review')}
                   />
+                  <TabButton 
+                    label="Similar" 
+                    icon={<IconUsers className="w-4 h-4" />} 
+                    isActive={activeTab === 'similar'}
+                    onClick={() => setActiveTab('similar')}
+                  />
                 </nav>
               </CardItem>
 
@@ -164,9 +238,15 @@ export const UMKMDetailCard: React.FC<UMKMDetailCardProps> = ({ umkm, onClose, c
                     // 4. HAPUS 'max-h-[40vh]', 'overflow-y-auto', dll.
                     className="" 
                   >
-                    {activeTab === 'overview' && <UMKMDetailOverview umkm={umkm} />}
+                                        {activeTab === 'overview' && <UMKMDetailOverview umkm={umkm} />}
                     {activeTab === 'product' && <UMKMDetailProduct umkm={umkm} />}
                     {activeTab === 'review' && <UMKMDetailReview umkm={umkm} />}
+                    {activeTab === 'similar' && (
+                      <div className="p-4 space-y-4">
+                        <h3 className="text-xl font-bold text-white mb-4">🏪 UMKM Serupa</h3>
+                        <SimpleUMKMList umkmId={umkm.id.toString()} />
+                      </div>
+                    )}
                   </motion.div>
                 </AnimatePresence>
               </CardItem>
