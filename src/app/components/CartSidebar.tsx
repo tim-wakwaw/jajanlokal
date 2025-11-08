@@ -186,28 +186,30 @@ export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                                   <button
                                     onClick={() => handleUpdateQuantity(item.product_id, item.quantity - 1)}
                                     disabled={isLoading || item.quantity <= 1}
-                                    className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="p-1.5 rounded-md bg-gray-200 dark:bg-gray-700 text-gray-600 hover:bg-gray-300 dark:text-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                   >
                                     <Minus className="w-4 h-4" />
                                   </button>
                                   
-                                  <span className="w-8 text-center font-medium text-gray-900 dark:text-white">
+                                  <span className="w-10 text-center font-medium text-gray-900 dark:text-white">
                                     {item.quantity}
                                   </span>
                                   
                                   <button
                                     onClick={() => handleUpdateQuantity(item.product_id, item.quantity + 1)}
                                     disabled={isLoading || item.quantity >= item.stock}
-                                    className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="p-1.5 rounded-md bg-gray-200 dark:bg-gray-700 text-gray-600 hover:bg-gray-300 dark:text-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                   >
                                     <Plus className="w-4 h-4" />
                                   </button>
                                 </div>
 
+                                {/* 🗑️ DELETE BUTTON - More Visible */}
                                 <button
                                   onClick={() => handleRemoveItem(item.product_id)}
                                   disabled={isLoading}
-                                  className="p-1 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  className="p-2 rounded-md bg-red-100 dark:bg-red-900/30 text-red-600 hover:bg-red-200 dark:text-red-400 dark:hover:bg-red-900/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                  title="Hapus dari keranjang"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>

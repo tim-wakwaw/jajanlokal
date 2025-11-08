@@ -72,9 +72,9 @@ const EnhancedProductCard = memo(function EnhancedProductCard({
   const isOutOfStock = stock === 0 || !isAvailable
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 group">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 group h-full flex flex-col">
       {/* Product Image */}
-      <div className="relative h-48 overflow-hidden bg-gray-100 dark:bg-gray-700">
+      <div className="relative h-48 overflow-hidden bg-gray-100 dark:bg-gray-700 shrink-0">
         {image ? (
           <Image
             src={image}
@@ -110,7 +110,7 @@ const EnhancedProductCard = memo(function EnhancedProductCard({
       </div>
 
       {/* Product Info */}
-      <div className="p-5">
+      <div className="p-5 flex flex-col flex-1">
         {/* Category */}
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs font-medium text-blue-600 bg-blue-100 dark:bg-blue-900 dark:text-blue-300 px-2 py-1 rounded-full">
@@ -124,7 +124,7 @@ const EnhancedProductCard = memo(function EnhancedProductCard({
         </h3>
 
         {/* UMKM name */}
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-1">
           {umkmName}
         </p>
 
@@ -134,6 +134,9 @@ const EnhancedProductCard = memo(function EnhancedProductCard({
             {description}
           </p>
         )}
+
+        {/* Spacer untuk push price dan buttons ke bawah */}
+        <div className="flex-1"></div>
 
         {/* Price */}
         <div className="flex items-center justify-between mb-4">

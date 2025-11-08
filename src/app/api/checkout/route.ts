@@ -120,6 +120,20 @@ export async function POST(request: NextRequest) {
         })
         .eq('id', orderData.id);
 
+      // 🗑️ Clear cart items from database after successful order
+      console.log('🗑️ Clearing cart for user:', userId);
+      const { error: clearCartError } = await supabaseAdmin
+        .from('cart_items')
+        .delete()
+        .eq('user_id', userId);
+
+      if (clearCartError) {
+        console.error('⚠️ Failed to clear cart:', clearCartError);
+        // Don't fail the whole request, just log the error
+      } else {
+        console.log('✅ Cart cleared successfully');
+      }
+
       return NextResponse.json({
         success: true,
         orderId: orderData.id,

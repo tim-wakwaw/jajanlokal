@@ -6,12 +6,13 @@ import Image from "next/image";
 import { useAuth } from "@/contexts/OptimizedAuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { useRouter } from "next/navigation";
-import { showErrorAlert, showSuccessAlert } from "@/lib/sweetalert";
+import { showErrorAlert, showSuccessAlert, showToast } from "@/lib/sweetalert";
 import { SimilarProducts } from "../components/RecommendationSection";
+import { Trash2 } from "lucide-react";
 
 export default function CheckoutPage() {
   const { user } = useAuth();
-  const { cartItems, cartTotal, cartCount, refreshCart } = useCart();
+  const { cartItems, cartTotal, cartCount, refreshCart, removeFromCart } = useCart();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -87,8 +88,11 @@ export default function CheckoutPage() {
         throw new Error(data.error || "Checkout failed");
       }
 
-      // Clear cart from localStorage
+      // 🗑️ Clear cart from localStorage
       localStorage.removeItem(`cart_${user.id}`);
+
+      // 🔄 Refresh cart to clear UI
+      await refreshCart();
 
       // Show success and redirect to Xendit payment page
       showSuccessAlert("Sukses!", "Mengarahkan ke halaman pembayaran...");
@@ -103,6 +107,21 @@ export default function CheckoutPage() {
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRemoveItem = async (productId: string) => {
+    try {
+      await removeFromCart(productId);
+      showToast('Item berhasil dihapus dari keranjang', 'success');
+      
+      // Jika keranjang jadi kosong, redirect ke produk
+      if (cartCount <= 1) {
+        router.push('/produk');
+      }
+    } catch (error) {
+      console.error('Error removing item:', error);
+      showErrorAlert('Error', 'Gagal menghapus item dari keranjang');
     }
   };
 
@@ -268,7 +287,7 @@ export default function CheckoutPage() {
                         alt={item.product_name}
                         width={64}
                         height={64}
-                        className="w-16 h-16 object-cover rounded-lg"
+                        className="w-16 h-16 object-cover rounded-lg shrink-0"
                       />
                     )}
                     <div className="flex-1 min-w-0">
@@ -287,6 +306,14 @@ export default function CheckoutPage() {
                         </span>
                       </div>
                     </div>
+                    {/* 🗑️ Delete Button */}
+                    <button
+                      onClick={() => handleRemoveItem(item.product_id)}
+                      className="p-2 h-fit rounded-md bg-red-100 dark:bg-red-900/30 text-red-600 hover:bg-red-200 dark:text-red-400 dark:hover:bg-red-900/50 transition-colors shrink-0"
+                      title="Hapus dari keranjang"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 ))}
               </div>

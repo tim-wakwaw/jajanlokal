@@ -9,12 +9,14 @@ import { supabase } from '@/lib/supabase';
 import { useCart } from '@/contexts/CartContext';
 import LazyImage from '@/app/components/LazyImage';
 import { SimilarProducts } from '@/app/components/RecommendationSection';
+import { CartButton } from '@/app/components/CartButton';
 
 interface ProductDetail {
   id: string;
   name: string;
   price: number;
   image_url?: string;
+  image?: string;
   stock: number;
   is_available: boolean;
   description?: string;
@@ -23,7 +25,7 @@ interface ProductDetail {
     id: string;
     name: string;
     category: string;
-    address?: string;
+    alamat?: string;
     rating?: number;
     lat?: number;
     lng?: number;
@@ -55,7 +57,7 @@ export default function ProductDetailPage() {
               id,
               name,
               category,
-              address,
+              alamat,
               rating,
               lat,
               lng
@@ -65,8 +67,29 @@ export default function ProductDetailPage() {
           .eq('is_available', true)
           .single();
 
-        if (error) throw error;
-        setProduct(data);
+        if (error) {
+          console.error('Supabase error:', error);
+          throw error;
+        }
+
+        if (!data) {
+          console.error('Product not found');
+          return;
+        }
+
+        // Fix: Handle umkm as array or object
+        const umkmData = Array.isArray(data.umkm) ? data.umkm[0] : data.umkm;
+        
+        setProduct({
+          ...data,
+          umkm: umkmData || {
+            id: data.umkm_id,
+            name: 'Unknown UMKM',
+            category: 'Unknown',
+            alamat: '',
+            rating: 0
+          }
+        });
       } catch (error) {
         console.error('Error fetching product:', error);
       } finally {
@@ -86,7 +109,7 @@ export default function ProductDetailPage() {
         quantity,
         product.name,
         product.price,
-        product.image_url,
+        product.image_url || product.image,
         product.umkm.name
       );
     } catch (error) {
@@ -192,7 +215,7 @@ export default function ProductDetailPage() {
           >
             <div className="aspect-square rounded-2xl overflow-hidden bg-white dark:bg-gray-800 shadow-lg">
               <LazyImage
-                src={product.image_url || '/placeholder-product.jpg'}
+                src={product.image_url || product.image || '/placeholder-product.jpg'}
                 alt={product.name}
                 fill
                 className="object-cover"
@@ -313,7 +336,7 @@ export default function ProductDetailPage() {
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-gray-400" />
                   <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {product.umkm.address || 'Alamat tidak tersedia'}
+                    {product.umkm.alamat || 'Alamat tidak tersedia'}
                   </span>
                 </div>
                 {product.umkm.rating && (
@@ -343,6 +366,9 @@ export default function ProductDetailPage() {
           />
         </motion.div>
       </div>
+
+      {/* Cart Button - Fixed Position */}
+      <CartButton />
     </div>
   );
 }

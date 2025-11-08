@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "motion/react";
 import EnhancedProductCard from "@/app/components/EnhancedProductCard";
-import ProductFilter from "@/app/components/ProductFilter";
+import SmartSearchBar from "@/app/components/SmartSearchBar";
 import { ProductService } from "../../lib/productService";
 import { supabase } from "@/lib/supabase";
 
@@ -25,48 +25,13 @@ export default function ProdukPage() {
   const [products, setProducts] = useState<ProductWithUmkm[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [categories, setCategories] = useState<string[]>(['all']);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [sortBy, setSortBy] = useState<string>("created_at");
+  const [sortBy] = useState<string>("created_at");
   const [currentPage, setCurrentPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
 
   const ITEMS_PER_PAGE = 8; // kurangi jumlah item untuk loading lebih cepat
-
-  // Fetch categories sekali saja dengan cache
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const result = await ProductService.getCategories();
-        if (result.success && result.data) {
-          setCategories(['all', ...result.data]);
-        }
-      } catch (err) {
-        console.error('Error fetching categories:', err);
-      }
-    };
-    fetchCategories();
-  }, []);
-
-  // Search input state (for immediate UI update)
-  const [searchInput, setSearchInput] = useState<string>("");
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
-  const debouncedSearch = useCallback((query: string) => {
-    setSearchInput(query); // Update UI immediately
-    
-    // Clear previous timeout
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-    
-    // Set new timeout
-    searchTimeoutRef.current = setTimeout(() => {
-      setSearchQuery(query); // Update actual search query after delay
-      setCurrentPage(1);
-    }, 300);
-  }, []); // Empty deps - stable function
 
   // Fetch products with pagination - dengan error handling yang lebih baik
   const fetchProducts = useCallback(async (page: number = 1, reset: boolean = true) => {
@@ -175,17 +140,6 @@ export default function ProdukPage() {
     }
   };
 
-  // Optimized filter handlers
-  const handleCategoryChange = useCallback((category: string) => {
-    setSelectedCategory(category);
-    setCurrentPage(1);
-  }, []);
-
-  const handleSortChange = useCallback((sort: string) => {
-    setSortBy(sort);
-    setCurrentPage(1);
-  }, []);
-
   if (loading) {
     return (
       <div className="min-h-screen bg-linear-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950">
@@ -234,49 +188,31 @@ export default function ProdukPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-brrom-blue-50 via-purple-50 to-pink-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950">
       <div className="relative z-10 pt-20">
         <div className="container mx-auto px-4 py-8">
           {/* Header - tanpa animasi berlebihan */}
-          <div className="text-center mb-12">
+          <div className="text-center mb-8">
             <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-linear-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
               Produk UMKM Lokal
             </h1>
-            <p className="text-xl text-neutral-600 dark:text-neutral-400 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl text-neutral-600 dark:text-neutral-400 max-w-3xl mx-auto leading-relaxed mb-8">
               Temukan beragam produk berkualitas dari UMKM terpercaya di sekitar Anda.
             </p>
             
+            {/* Smart Search */}
+            <div className="max-w-3xl mx-auto mb-8">
+              <SmartSearchBar />
+            </div>
+            
             {/* Stats */}
-            <div className="flex justify-center gap-8 mt-8">
+            <div className="flex justify-center gap-8 mt-6">
               <div className="text-center">
                 <div className="text-3xl font-bold text-blue-600">
                   {products.length}+
                 </div>
                 <div className="text-sm text-neutral-500">Produk</div>
               </div>
-            </div>
-          </div>
-
-          {/* Filter Component */}
-          <ProductFilter
-            categories={categories}
-            selectedCategory={selectedCategory}
-            onCategoryChange={handleCategoryChange}
-            searchQuery={searchInput}
-            onSearchChange={debouncedSearch}
-            sortBy={sortBy}
-            onSortChange={handleSortChange}
-          />
-
-          {/* Results Info */}
-          <div className="mb-8">
-            <div className="bg-white/70 dark:bg-neutral-900/70 backdrop-blur-sm rounded-lg p-4 border border-white/20 dark:border-neutral-700/50">
-              <p className="text-neutral-700 dark:text-neutral-300 font-medium">
-                Menampilkan <span className="text-blue-600 font-bold">{products.length}</span> produk
-                {selectedCategory !== "all" && (
-                  <span className="text-purple-600 font-semibold"> dari kategori {selectedCategory}</span>
-                )}
-              </p>
             </div>
           </div>
 
