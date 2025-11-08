@@ -44,8 +44,8 @@ const SimpleUMKMList = ({ umkmId }: { umkmId: string }) => {
 
   if (loading) {
     return (
-      <div className="text-white/70 text-center py-8">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+      <div className="text-neutral-600 dark:text-white/70 text-center py-8">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-neutral-600 dark:border-white"></div>
         <p className="mt-2">Loading UMKM serupa...</p>
       </div>
     );
@@ -53,7 +53,7 @@ const SimpleUMKMList = ({ umkmId }: { umkmId: string }) => {
 
   if (similarUMKM.length === 0) {
     return (
-      <div className="text-white/70 text-center py-8">
+      <div className="text-neutral-600 dark:text-white/70 text-center py-8">
         <IconBuildingStore className="w-12 h-12 mx-auto mb-2 opacity-50" />
         <p>Tidak ada UMKM serupa ditemukan.</p>
       </div>
@@ -67,7 +67,7 @@ const SimpleUMKMList = ({ umkmId }: { umkmId: string }) => {
           key={umkm.id}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden border border-white/20 hover:border-white/40 transition-all cursor-pointer"
+          className="bg-neutral-100 dark:bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden border border-neutral-300 dark:border-white/20 hover:border-neutral-400 dark:hover:border-white/40 transition-all cursor-pointer"
         >
           {/* UMKM Image */}
           <div className="relative w-full h-32 bg-linear-to-br from-blue-500/20 to-purple-600/20">
@@ -80,29 +80,29 @@ const SimpleUMKMList = ({ umkmId }: { umkmId: string }) => {
               />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
-                <IconBuildingStore className="w-12 h-12 text-white/40" />
+                <IconBuildingStore className="w-12 h-12 text-neutral-400 dark:text-white/40" />
               </div>
             )}
           </div>
 
           {/* UMKM Info */}
           <div className="p-3">
-            <h4 className="text-white font-semibold text-sm truncate mb-1">
+            <h4 className="text-neutral-900 dark:text-white font-semibold text-sm truncate mb-1">
               {umkm.name}
             </h4>
-            <p className="text-white/70 text-xs truncate mb-2">
+            <p className="text-neutral-600 dark:text-white/70 text-xs truncate mb-2">
               {umkm.category}
             </p>
             
             {/* Rating & Location */}
             <div className="flex items-center justify-between text-xs">
               {umkm.rating && (
-                <span className="text-yellow-400 flex items-center gap-1">
+                <span className="text-yellow-500 dark:text-yellow-400 flex items-center gap-1">
                   ⭐ {umkm.rating.toFixed(1)}
                 </span>
               )}
               {umkm.alamat && (
-                <span className="text-white/60 truncate flex-1 ml-2">
+                <span className="text-neutral-500 dark:text-white/60 truncate flex-1 ml-2">
                   {umkm.alamat.split(',')[0]}
                 </span>
               )}
