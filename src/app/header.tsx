@@ -76,6 +76,11 @@ export default function Header() {
           {/* Auth Buttons */}
           {user ? (
             <div className="flex items-center gap-3">
+              {/* Orders Button */}
+              <NavbarButton href="/orders" variant="secondary">
+                Pesanan Saya
+              </NavbarButton>
+              
               {profile?.role === 'admin' || profile?.role === 'super_admin' ? (
                 <NavbarButton href="/admin/dashboard" variant="secondary">
                   Admin
@@ -143,6 +148,15 @@ export default function Header() {
                   <div className="px-4 py-2 text-sm text-gray-500">
                     {profile?.full_name || user.email}
                   </div>
+                  
+                  {/* Orders Link */}
+                  <a
+                    href="/orders"
+                    className="block px-4 py-2 text-sm text-blue-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    onClick={handleMobileItemClick}
+                  >
+                    Pesanan Saya
+                  </a>
                   
                   {profile?.role === 'admin' || profile?.role === 'super_admin' ? (
                     <a

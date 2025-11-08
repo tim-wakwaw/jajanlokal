@@ -12,9 +12,11 @@ export default function LayoutContent({
 }) {
   const pathname = usePathname();
   const isAdminRoute = pathname?.startsWith("/admin");
+  // Check jika ini halaman detail produk (format: /produk/[id])
+  const isProductDetailRoute = pathname?.match(/^\/produk\/[^/]+$/);
 
-  // Untuk admin routes, gak render Header, Footer, FAB
-  if (isAdminRoute) {
+  // Untuk admin routes atau product detail, gak render Header, Footer, FAB
+  if (isAdminRoute || isProductDetailRoute) {
     return <>{children}</>;
   }
 

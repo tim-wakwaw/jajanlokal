@@ -329,18 +329,25 @@ export default function FAQPage() {
                 key={faq.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: index * 0.05, type: "spring", stiffness: 100 }}
+                whileHover={{ scale: 1.01 }}
                 className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700"
               >
-                <button
+                <motion.button
                   onClick={() => setOpenIndex(openIndex === index ? null : index)}
                   className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  whileTap={{ scale: 0.98 }}
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 font-medium">
+                      <motion.span
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: index * 0.05 + 0.2, type: "spring" }}
+                        className="text-xs px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 font-medium"
+                      >
                         {faq.category}
-                      </span>
+                      </motion.span>
                     </div>
                     <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
                       {faq.question}
@@ -348,7 +355,7 @@ export default function FAQPage() {
                   </div>
                   <motion.svg
                     animate={{ rotate: openIndex === index ? 180 : 0 }}
-                    transition={{ duration: 0.3 }}
+                    transition={{ duration: 0.3, type: "spring", stiffness: 200 }}
                     className="w-5 h-5 text-gray-500"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -361,7 +368,7 @@ export default function FAQPage() {
                       d="M19 9l-7 7-7-7"
                     />
                   </motion.svg>
-                </button>
+                </motion.button>
 
                 <AnimatePresence>
                   {openIndex === index && (
@@ -369,7 +376,7 @@ export default function FAQPage() {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3 }}
+                      transition={{ duration: 0.3, type: "spring", stiffness: 100 }}
                       className="overflow-hidden"
                     >
                       <div className="px-6 pb-4 text-gray-600 dark:text-gray-300">
