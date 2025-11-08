@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { TracingBeam } from "@/components/ui/tracing-beam";
 import { motion } from "motion/react";
 
@@ -242,12 +243,12 @@ export default function AboutPage() {
                     Daftarkan UMKM Anda
                   </a>
                   
-                  <a
+                  <Link
                     href="/produk"
                     className="flex-1 text-center px-6 py-3 bg-white dark:bg-neutral-800 text-neutral-800 dark:text-white font-semibold rounded-lg border-2 border-neutral-300 dark:border-neutral-600 hover:border-purple-500 dark:hover:border-purple-500 transition-all duration-200"
                   >
                     Jelajahi Produk
-                  </a>
+                  </Link>
                 </div>
 
                 <p className="text-neutral-600 dark:text-neutral-400 text-center mt-8 italic">
