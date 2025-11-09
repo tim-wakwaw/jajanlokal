@@ -17,7 +17,7 @@ interface CartSidebarProps {
 
 export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const { cartItems, updateQuantity, removeFromCart, cartTotal, cartCount } = useCart()
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
 
   // Close on outside click
@@ -60,6 +60,12 @@ export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
 
   // Handle checkout
   const handleCheckout = async () => {
+    // Wait for auth to finish loading
+    if (authLoading) {
+      showToast('Memuat data pengguna...', 'info')
+      return
+    }
+
     if (!user) {
       showErrorAlert('Silakan login terlebih dahulu untuk checkout')
       return
@@ -244,16 +250,21 @@ export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                     {/* Checkout Button */}
                     <MagicBorderButton
                       onClick={handleCheckout}
-                      disabled={isLoading || cartCount === 0}
+                      disabled={authLoading || isLoading || cartCount === 0}
                       className="w-full"
                     >
                       <span className="flex items-center justify-center gap-2">
-                        Checkout
+                        {authLoading ? 'Memuat...' : 'Checkout'}
                         <ArrowRight className="w-4 h-4" />
                       </span>
                     </MagicBorderButton>
 
-                    {!user && (
+                    {authLoading && (
+                      <p className="text-xs text-center text-blue-500 dark:text-blue-400">
+                        Memuat data pengguna...
+                      </p>
+                    )}
+                    {!authLoading && !user && (
                       <p className="text-xs text-center text-gray-500 dark:text-gray-400">
                         Login diperlukan untuk checkout
                       </p>

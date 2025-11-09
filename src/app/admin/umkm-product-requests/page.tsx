@@ -295,7 +295,7 @@ export default function UMKMProductRequestsPage() {
         
         // If UMKM, check how many products are attached
         if (type === 'umkm' && mainDataExists) {
-          const { data: productsData, count } = await supabase
+          const { count } = await supabase
             .from('products')
             .select('id', { count: 'exact' })
             .eq('umkm_id', id)
