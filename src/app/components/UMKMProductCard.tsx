@@ -45,7 +45,6 @@ export const UMKMProductCard: React.FC<UMKMProductCardProps> = ({ product, class
       {/* Bagian Gambar Produk */}
       <div className="relative w-full h-32 bg-muted shrink-0">
         <LazyImage
-          // Gunakan gambar produk atau gambar placeholder jika tidak ada
           src={product.image || 'https://picsum.photos/seed/product/300/200'} 
           alt={product.name}
           className="w-full h-full object-cover"
@@ -55,20 +54,17 @@ export const UMKMProductCard: React.FC<UMKMProductCardProps> = ({ product, class
       {/* Bagian Info Produk */}
       <div className="p-3 flex flex-col flex-1">
         
-        {/* Nama Produk (dibatasi 2 baris) */}
         <h4 
-          className="text-sm font-semibold text-foreground line-clamp-2 leading-tight h-10" // Beri tinggi tetap
+          className="text-sm font-semibold text-foreground line-clamp-2 leading-tight h-10" 
           title={product.name}
         >
           {product.name}
         </h4>
         
-        {/* Harga Produk */}
         <p className="text-sm font-medium text-primary mt-1">
           {formattedPrice}
         </p>
 
-        {/* Tombol (didorong ke bawah) */}
         <div className="mt-auto pt-2">
           <button
             onClick={handleAddToCart}
