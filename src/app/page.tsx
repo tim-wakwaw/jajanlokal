@@ -1,5 +1,6 @@
 import HeroSection from "./components/HeroSection";
-import ThemeToggle from "./components/ThemeToggle";
+import CategorySection from "./components/CategorySection"; // [!code ++]
+import HowItWorksSection from "./components/HowItWorksSection"; // [!code ++]
 // import UMKMSection from "./components/UMKMSection";
 import AppleCarouselSection from "./components/AppleCarouselSection";
 import ProductSection from "./components/ProductSection";
@@ -10,8 +11,9 @@ import RegisterUMKMSection from "./components/RegisterUMKMSection";
 export default function Home() {
   return (
     <>
-      <ThemeToggle />
       <HeroSection />
+      <CategorySection /> {/* [!code ++] */}
+      <HowItWorksSection /> {/* [!code ++] */}
 
       {/* <UMKMSection /> */}
       <AppleCarouselSection />

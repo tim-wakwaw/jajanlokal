@@ -6,6 +6,7 @@ import "./globals.css";
 import { ThemeProvider } from "./providers/ThemeProviders";
 import Providers from "./components/Providers";
 import LayoutContent from "./LayoutContent";
+import ThemeToggle from "./components/ThemeToggle";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -57,6 +58,7 @@ export default function RootLayout({
         <ThemeProvider>
           <Providers>
             <LayoutContent>{children}</LayoutContent>
+            <ThemeToggle />
           </Providers>
         </ThemeProvider>
       </body>
