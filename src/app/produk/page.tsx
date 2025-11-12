@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+// [!code ++]
+import { useState, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+// [!code --]
 import { motion } from "motion/react";
 import EnhancedProductCard from "@/app/components/EnhancedProductCard";
-import ProductFilter from "@/app/components/ProductFilter"; // Menggunakan komponen filter yang sudah diperbaiki
+import ProductFilter from "@/app/components/ProductFilter";
 import { ProductService } from "../../lib/productService";
 import { supabase } from "@/lib/supabase";
 
@@ -21,12 +24,16 @@ interface ProductWithUmkm {
   _uniqueKey?: string;
 }
 
-// Tipe data filter (HANYA 3 ITEM SEKARANG)
+// [!code ++]
+// Tipe data filter LENGKAP (sesuai ProductFilter.tsx)
 interface AppliedFilters {
   search: string;
   category: string;
   sortBy: string;
+  minRating?: number;
+  priceRange?: { min?: number; max?: number };
 }
+// [!code --]
 
 // --- KOMPONEN SKELETON (TIDAK BERUBAH) ---
 const ProductGridSkeleton = () => (
@@ -50,19 +57,30 @@ const ProductGridSkeleton = () => (
 );
 // --------------------------------------------------
 
-export default function ProdukPage() {
+// [!code ++]
+// PINDAHKAN SEMUA LOGIKA KE KOMPONEN INTERNAL
+function ProdukPageContent() {
+  // [!code ++]
+  const searchParams = useSearchParams();
+  const kategoriFromUrl = searchParams.get('kategori');
+  // [!code --]
+
   const [products, setProducts] = useState<ProductWithUmkm[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
 
   const [categories, setCategories] = useState<string[]>(["all"]);
 
-  // State untuk filter yang *sedang diterapkan* (KEMBALI KE 3 ITEM)
+  // [!code ++]
+  // State untuk filter yang *sedang diterapkan* (LENGKAP)
   const [appliedFilters, setAppliedFilters] = useState<AppliedFilters>({
     search: "",
-    category: "all",
+    category: kategoriFromUrl || "all", // Inisialisasi dari URL
     sortBy: "created_at",
+    minRating: undefined,
+    priceRange: undefined
   });
+  // [!code --]
 
   const [currentPage, setCurrentPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
@@ -77,14 +95,18 @@ export default function ProdukPage() {
         setLoadingMore(true);
       }
 
-      // Gunakan state 'appliedFilters' untuk query (HANYA 3 FILTER)
+      // [!code ++]
+      // Gunakan state 'appliedFilters' LENGKAP untuk query
       const result = await ProductService.getProductsPaginated({
         page,
         limit: ITEMS_PER_PAGE,
         category: appliedFilters.category !== 'all' ? appliedFilters.category : undefined,
         search: appliedFilters.search || undefined,
         sortBy: appliedFilters.sortBy,
+        minRating: appliedFilters.minRating, // Kirim filter rating
+        priceRange: appliedFilters.priceRange // Kirim filter harga
       });
+      // [!code --]
 
       if (result.success && result.data) {
         const formattedProducts = result.data.map((product, idx) => ({
@@ -129,7 +151,7 @@ export default function ProdukPage() {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [appliedFilters]);
+  }, [appliedFilters]); // fetchProducts sekarang bergantung pada state appliedFilters LENGKAP
 
   // Ambil kategori (hanya sekali)
   useEffect(() => {
@@ -179,21 +201,25 @@ export default function ProdukPage() {
     }
   };
 
-  // Callback untuk tombol "Cari" (KEMBALI KE 3 FILTER)
+  // [!code ++]
+  // Callback untuk tombol "Cari" (LENGKAP)
   const handleFilterSubmit = useCallback((filters: AppliedFilters) => {
     setAppliedFilters(filters);
     setCurrentPage(1);
   }, []);
 
-  // Callback untuk tombol "Reset" (KEMBALI KE 3 FILTER)
+  // Callback untuk tombol "Reset" (LENGKAP)
   const handleFilterReset = useCallback(() => {
     setAppliedFilters({
       search: "",
       category: "all",
       sortBy: "created_at",
+      minRating: undefined,
+      priceRange: undefined
     });
     setCurrentPage(1);
   }, []);
+  // [!code --]
 
 
   return (
@@ -287,7 +313,7 @@ export default function ProdukPage() {
                         >
                           <path
                             fillRule="evenodd"
-                            d="M16.707 10.293a1 1 0 010 1.414l-6 6a1 1 0 01-1.414 0l-6-6a1 1 0 111.414-1.414L9 14.586V3a1 1 0 012 0v11.586l4.293-4.293a1 1 0 011.414 0z"
+                            d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414 0l-6-6a1 1 0 111.414-1.414L9 14.586V3a1 1 0 012 0v11.586l4.293-4.293a1 1 0 011.414 0z"
                             clipRule="evenodd"
                           />
                         </svg>
@@ -322,3 +348,15 @@ export default function ProdukPage() {
     </div>
   );
 }
+
+// [!code ++]
+// EXPORT BARU DENGAN SUSPENSE WRAPPER
+export default function ProdukPage() {
+  return (
+    // Suspense diperlukan karena ProductFilter (child) sekarang menggunakan useSearchParams
+    <Suspense fallback={<div className="min-h-screen pt-20"><ProductGridSkeleton /></div>}>
+      <ProdukPageContent />
+    </Suspense>
+  )
+}
+// [!code --]

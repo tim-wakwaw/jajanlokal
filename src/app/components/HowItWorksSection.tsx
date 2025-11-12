@@ -13,7 +13,7 @@ const steps = [
     {
         icon: <ShieldCheck className="w-10 h-10 text-purple-500" />,
         title: "Pesan dengan Aman",
-        description: "Nikmati transaksi aman dengan gateway pembayaran terpercaya.",
+        description: "Nikmati transaksi yang aman dan terpercaya.",
     },
     {
         icon: <Store className="w-10 h-10 text-green-500" />,

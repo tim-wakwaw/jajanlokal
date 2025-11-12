@@ -55,7 +55,8 @@ export class ProductService {
             id,
             name,
             category,
-            image
+            image,
+            rating
           )
         `)
         .eq('is_available', true)
@@ -103,7 +104,7 @@ export class ProductService {
         umkmName: item.umkm.name,
         category: item.umkm.category,
         umkmImage: item.umkm.image,
-        umkmRating: 4.5, // Default rating
+        umkmRating: item.umkm.rating || 0, // Gunakan rating asli
         createdAt: item.created_at
       }))
 
@@ -121,9 +122,11 @@ export class ProductService {
     category?: string
     search?: string
     sortBy?: string
-    // HAPUS filter yang menyebabkan error
-    // minRating?: number;
-    // priceRange?: { min?: number; max?: number };
+    // [!code ++]
+    // AKTIFKAN KEMBALI FILTER INI
+    minRating?: number;
+    priceRange?: { min?: number; max?: number };
+    // [!code --]
   } = {}) {
     try {
       const {
@@ -131,8 +134,12 @@ export class ProductService {
         limit = 12,
         category,
         search,
-        sortBy = 'created_at'
-        // HAPUS filter yang menyebabkan error
+        sortBy = 'created_at',
+        // [!code ++]
+        // DESTRUCTURE FILTER BARU
+        minRating,
+        priceRange
+        // [!code --]
       } = options
 
       const offset = (page - 1) * limit
@@ -152,9 +159,10 @@ export class ProductService {
             id,
             name,
             category,
-            image
+            image,
+            rating
           )
-        `, { count: 'exact' }) // HAPUS 'rating' dari select
+        `, { count: 'exact' }) // TAMBAHKAN 'rating'
         .eq('is_available', true)
 
       // Apply category filter
@@ -167,24 +175,49 @@ export class ProductService {
         query = query.ilike('name', `%${search}%`)
       }
 
-      // HAPUS Logika filter rating dan harga
+      // [!code ++]
+      // TAMBAHKAN LOGIKA FILTER RATING DAN HARGA
+      if (minRating) {
+        query = query.gte('umkm.rating', minRating)
+      }
+
+      if (priceRange?.min) {
+        query = query.gte('price', priceRange.min)
+      }
+
+      if (priceRange?.max) {
+        query = query.lte('price', priceRange.max)
+      }
+      // [!code --]
 
       // Apply sorting
       const orderColumn = sortBy === 'price-low' || sortBy === 'price-high' ? 'price' :
-        sortBy === 'stock' ? 'stock' : 'created_at'
+        // [!code ++]
+        sortBy === 'rating' ? 'umkm.rating' : // Tambah sort by rating
+          // [!code --]
+          sortBy === 'stock' ? 'stock' : 'created_at'
+
       const ascending = sortBy === 'price-low' ? true :
         sortBy === 'name' ? true : false
 
-      query = query
-        .order(orderColumn, { ascending })
-        .order('id', { ascending: true }) // Secondary sort by id
+      // [!code ++]
+      // Modifikasi query order untuk handle join rating
+      if (sortBy === 'rating') {
+        query = query
+          .order('rating', { foreignTable: 'umkm', ascending: false })
+      } else {
+        query = query
+          .order(orderColumn, { ascending })
+      }
+
+      query = query.order('id', { ascending: true }) // Secondary sort by id
+        // [!code --]
         .range(offset, offset + limit - 1)
 
       const { data, error, count } = await query
 
       if (error) {
-        // INI ADALAH ERROR YANG MUNCUL DI SCREENSHOT ANDA (image_72fbc5.png)
-        console.error('Supabase query error:', error); // Tampilkan error jika ada
+        console.error('Supabase query error:', error);
         return {
           success: true,
           data: [],
@@ -208,7 +241,9 @@ export class ProductService {
         umkmName: item.umkm.name,
         category: item.umkm.category,
         umkmImage: item.umkm.image,
-        umkmRating: 4.5, // KEMBALIKAN ke default rating
+        // [!code ++]
+        umkmRating: item.umkm.rating || 0, // Gunakan rating asli
+        // [!code --]
         createdAt: item.created_at
       }))
 
@@ -253,7 +288,6 @@ export class ProductService {
         .select('category')
 
       if (error) {
-        // INI ADALAH ERROR DARI (image_72f91b.png)
         console.error('Error fetching categories:', error)
         return { success: true, data: [] }
       }
@@ -291,9 +325,10 @@ export class ProductService {
             alamat,
             lat,
             lng,
-            image
+            image,
+            rating
           )
-        `) // HAPUS 'rating' dari select
+        `) // TAMBAHKAN 'rating'
         .eq('id', productId)
         .single()
 
@@ -316,12 +351,12 @@ export class ProductService {
           id: product.umkm.id,
           name: product.umkm.name,
           category: product.umkm.category,
-          description: product.umkm.description || '', // Gunakan tipe yang benar
+          description: product.umkm.description || '',
           address: product.umkm.alamat || '',
           lat: product.umkm.lat || 0,
           lng: product.umkm.lng || 0,
           image: product.umkm.image,
-          rating: 4.5 // KEMBALIKAN ke default rating
+          rating: product.umkm.rating || 0 // Gunakan rating asli
         }
       }
 

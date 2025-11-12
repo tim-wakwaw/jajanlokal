@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Search, Filter, SortAsc, Star, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -26,9 +27,19 @@ export default function ProductFilter({
   onFilterReset
 }: ProductFilterProps) {
 
-  // State internal (LENGKAP DENGAN 4 FILTER)
+  const searchParams = useSearchParams();
+  const kategoriFromUrl = searchParams.get('kategori');
+
+  // Memoize kategori yang valid. Ini akan ter-update saat prop 'categories' berubah.
+  const validCategories = useMemo(() => new Set(categories), [categories]);
+
+  // Gunakan "lazy initializer" untuk useState. Fungsi ini HANYA berjalan sekali saat mount.
+  // Kita BACA URL SEKALI saja untuk nilai awal.
+  const [selectedCategory, setSelectedCategory] = useState(() => {
+    return kategoriFromUrl || "all";
+  });
+
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("created_at");
   const [minRating, setMinRating] = useState<number | undefined>(undefined);
   const [priceMin, setPriceMin] = useState<string>("");
@@ -36,10 +47,44 @@ export default function ProductFilter({
 
   const [showFilters, setShowFilters] = useState(false);
 
+
+  // [!code ++]
+  // *** INI ADALAH PERBAIKAN UTAMA ***
+  // Effect ini menyinkronkan state DARI URL atau Props.
+  // Dia TIDAK bergantung pada `selectedCategory`
+  useEffect(() => {
+    // Tentukan apa kategori yang seharusnya
+    const isUrlCategoryValid = kategoriFromUrl && validCategories.has(kategoriFromUrl);
+
+    if (isUrlCategoryValid) {
+      // KASUS 1: URL valid (misal "Kuliner")
+      // Panggil setState HANYA jika state-nya belum sama.
+      setSelectedCategory(kategoriFromUrl);
+
+    } else if (kategoriFromUrl && !isUrlCategoryValid) {
+      // KASUS 2: URL ada tapi TIDAK valid (misal "makanan-enak" ATAU "Kuliner" tapi prop 'categories' belum dimuat)
+      // Jika 'categories' SUDAH dimuat (size > 1), kita tahu URL-nya pasti salah. Reset ke "all".
+      if (validCategories.size > 1) {
+        setSelectedCategory("all");
+      }
+      // Jika 'categories' BELUM dimuat (size <= 1), kita biarkan dulu,
+      // effect ini akan jalan lagi nanti saat 'validCategories' berubah.
+
+    } else if (!kategoriFromUrl) {
+      // KASUS 3: Tidak ada param URL. Pastikan "all".
+      setSelectedCategory("all");
+    }
+
+    // ESLint akan mengeluh 'selectedCategory' tidak ada di array, tapi ini DISENGAJA.
+    // Kita hanya ingin effect ini berjalan saat URL atau PROPS berubah.
+  }, [kategoriFromUrl, validCategories]);
+  // [!code --]
+
+
   // Cek apakah filter aktif (LENGKAP DENGAN 4 FILTER)
   const isDirty =
     searchQuery !== "" ||
-    selectedCategory !== "all" ||
+    selectedCategory !== (kategoriFromUrl && validCategories.has(kategoriFromUrl) ? kategoriFromUrl : "all") || // Cek vs default yg benar
     sortBy !== "created_at" ||
     minRating !== undefined ||
     priceMin !== "" ||
@@ -174,6 +219,7 @@ export default function ProductFilter({
                   <option value="name">Nama A-Z</option>
                   <option value="price-low">Harga Terendah</option>
                   <option value="price-high">Harga Tertinggi</option>
+                  <option value="rating">Rating Tertinggi</option>
                 </select>
               </div>
 
@@ -187,7 +233,11 @@ export default function ProductFilter({
                   onChange={(e) => setMinRating(e.target.value ? Number(e.target.value) : undefined)}
                   className="w-full px-4 py-3 border-2 border-neutral-200 dark:border-neutral-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white/70 dark:bg-neutral-800/70 text-neutral-900 dark:text-neutral-100 appearance-none cursor-pointer"
                 >
+                  {/* PERBARUI OPSI RATING */}
                   <option value="">Semua Rating</option>
+                  <option value="1">⭐ 1.0+</option>
+                  <option value="2">⭐ 2.0+</option>
+                  <option value="3">⭐ 3.0+</option>
                   <option value="4">⭐ 4.0+</option>
                   <option value="4.5">⭐ 4.5+</option>
                 </select>
@@ -211,7 +261,7 @@ export default function ProductFilter({
                 </select>
               </div>
 
-              {/* Rentang Harga */}
+              {/* Rentang Harga (SUDAH BENAR) */}
               <div>
                 <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                   💸 Rentang Harga
@@ -230,20 +280,12 @@ export default function ProductFilter({
                     placeholder="Max (Rp)"
                     value={priceMax}
                     onChange={(e) => setPriceMax(e.target.value)}
-                    // --- PERBAIKAN TYPO DI SINI ---
                     className="w-1/2 px-4 py-3 border-2 border-neutral-200 dark:border-neutral-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white/70 dark:bg-neutral-800/70"
                   />
                 </div>
               </div>
 
             </div>
-
-            {/* --- BAGIAN INI DIHAPUS ---
-            <div className="mt-6 pt-6 border-t border-neutral-200 dark:border-neutral-700">
-              ... Kategori Populer (Quick Chips) ...
-            </div>
-            */}
-
           </motion.div>
         )}
       </AnimatePresence>

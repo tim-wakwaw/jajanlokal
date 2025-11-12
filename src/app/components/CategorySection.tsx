@@ -7,11 +7,13 @@ import { BackgroundGradient } from "./ui/background-gradient";
 
 // Kategori ini didasarkan pada data Anda di umkmData.json dan ProductCard.tsx
 const CATEGORIES = [
-    { name: "Kuliner", icon: "🍽️", href: "/peta-umkm?kategori=Kuliner" },
-    { name: "Fashion", icon: "👕", href: "/peta-umkm?kategori=Fashion" },
-    { name: "Retail", icon: "🏪", href: "/peta-umkm?kategori=Retail" },
-    { name: "Kerajinan", icon: "🎨", href: "/peta-umkm?kategori=Kerajinan" },
-    { name: "Kesehatan", icon: "💊", href: "/peta-umkm?kategori=Kesehatan" },
+    // [!code ++]
+    { name: "Kuliner", icon: "🍽️", href: "/produk?kategori=Kuliner" },
+    { name: "Fashion", icon: "👕", href: "/produk?kategori=Fashion" },
+    { name: "Retail", icon: "🏪", href: "/produk?kategori=Retail" },
+    { name: "Kerajinan", icon: "🎨", href: "/produk?kategori=Kerajinan" },
+    { name: "Kesehatan", icon: "💊", href: "/produk?kategori=Kesehatan" },
+    // [!code --]
 ];
 
 const cardVariants: Variants = { // [!code ++]
