@@ -1,11 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { StickyScroll } from "./ui/sticky-scroll-reveal";
 import BlurText from "./ui/blurtext";
+import ShinyText from "./ui/ShinyText";
 import { NavbarButton } from "./ui/resizable-navbar";
 import { MapPin, ShieldCheck, TrendingUp, Users } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 
 const umkmBenefits = [
   {
@@ -63,12 +65,16 @@ export default function RegisterUMKMSection() {
     <section className="relative w-full bg-white text-neutral-900 dark:bg-neutral-950 dark:text-white">
       <div className="absolute top-16 md:top-24 left-1/2 -translate-x-1/2 z-20 text-center">
         <BlurText
-          text="Kenapa Harus Daftar UMKM di JajanLokal?"
+          text="Daftarkan UMKM Anda!"
           delay={150}
           animateBy="words"
           direction="top"
           className="text-4xl md:text-5xl font-bold"
         />
+        <ShinyText
+          text="Kenapa Harus Daftar UMKM di JajanLokal?"
+          className="mt-4 text-sm font-medium text-neutral-600 dark:text-neutral-400 md:text-base"
+        />
       </div>
       <StickyScroll content={umkmBenefits} />
     </section>
