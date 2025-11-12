@@ -1,10 +1,11 @@
 import HeroSection from "./components/HeroSection";
 import ThemeToggle from "./components/ThemeToggle";
-import UMKMSection from "./components/UMKMSection";
+// import UMKMSection from "./components/UMKMSection";
 import AppleCarouselSection from "./components/AppleCarouselSection";
 import ProductSection from "./components/ProductSection";
 import TestimonialSection from "./components/TestimonialSection";
 import RecommendationSection from "./components/RecommendationSection";
+import RegisterUMKMSection from "./components/RegisterUMKMSection";
 
 export default function Home() {
   return (
@@ -12,7 +13,7 @@ export default function Home() {
       <ThemeToggle />
       <HeroSection />
       
-      <UMKMSection />
+      {/* <UMKMSection /> */}
       <AppleCarouselSection />
       <ProductSection />
       
@@ -31,6 +32,7 @@ export default function Home() {
       </section>
       
       <TestimonialSection />
+      <RegisterUMKMSection />
     </>
   );
 }

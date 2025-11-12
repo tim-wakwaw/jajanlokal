@@ -2,7 +2,6 @@
 
 import { useRef, useEffect } from 'react';
 import Link from 'next/link';
-// Impor 'useInView'
 import { motion, useMotionValue, useTransform, useSpring, type MotionValue, animate, type AnimationPlaybackControls, useInView } from 'framer-motion';
 import { MapPin, ShoppingCart, Store, MessageSquare, ShieldCheck, Heart } from 'lucide-react';
 import { LottieAnimation } from './LottieAnimation'; 
