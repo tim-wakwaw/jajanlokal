@@ -28,14 +28,14 @@ import { supabase } from '@/lib/supabase';
  * @property {string} [image] - URL gambar produk.
  */
 
-interface Product { name: string; price: number; image?: string;}
+interface Product { name: string; price: number; image?: string; }
 
 /**
  * @typedef {object} Comment
  * @property {string} user - Nama pengguna yang berkomentar.
  * @property {string} text - Isi komentar.
  */
-interface Comment { user: string; text: string;}
+interface Comment { user: string; text: string; }
 
 /**
  * @typedef {object} UMKM
@@ -95,7 +95,7 @@ export default function PetaUMKM() {
   const userLocationCircleRef = useRef<import('leaflet').Circle | null>(null);
   /** Status loading data UMKM dari JSON. */
   const [isLoadingData, setIsLoadingData] = useState(true);
-  const [sidebarWidth, setSidebarWidth] = useState(320); 
+  const [sidebarWidth, setSidebarWidth] = useState(320);
   const [isResizing, setIsResizing] = useState(false);
   /** Ref untuk elemen DOM Sidebar. */
   const sidebarRef = useRef<HTMLDivElement>(null!);
@@ -119,7 +119,7 @@ export default function PetaUMKM() {
 
     // e.clientX adalah posisi mouse horizontal. Ini akan jadi lebar baru.
     const newWidth = e.clientX;
-    
+
     // Terapkan batasan
     const constrainedWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
     setSidebarWidth(constrainedWidth);
@@ -136,17 +136,17 @@ export default function PetaUMKM() {
       window.addEventListener('mousemove', handleResizeMouseMove);
       window.addEventListener('mouseup', handleResizeMouseUp);
     }
-    
+
     return () => {
       window.removeEventListener('mousemove', handleResizeMouseMove);
       window.removeEventListener('mouseup', handleResizeMouseUp);
     };
   }, [isResizing, handleResizeMouseMove, handleResizeMouseUp]);
 
-   /**
-   * Efek untuk menandai bahwa komponen sudah berjalan di client-side.
-   * Dijalankan sekali setelah initial render.
-   */
+  /**
+  * Efek untuk menandai bahwa komponen sudah berjalan di client-side.
+  * Dijalankan sekali setelah initial render.
+  */
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -196,10 +196,10 @@ export default function PetaUMKM() {
    */
   useEffect(() => {
     if (!isClient) return;
-    
+
     const fetchUMKM = async () => {
       setIsLoadingData(true);
-      
+
       try {
         const { data, error } = await supabase
           .from('umkm')
@@ -229,11 +229,11 @@ export default function PetaUMKM() {
 
         setUmkmList(transformedData);
         setIsLoadingData(false);
-        
+
         // Preload images setelah data dimuat
         transformedData.forEach((umkm: UMKM) => {
           if (umkm.image) {
-            const img = new Image(); 
+            const img = new Image();
             img.src = umkm.image;
           }
         });
@@ -275,7 +275,7 @@ export default function PetaUMKM() {
     if (!selectedUMKM?.id) return;
 
     const umkmId = selectedUMKM.id;
-    
+
     const fetchProducts = async () => {
       try {
         const { data, error } = await supabase
@@ -320,15 +320,15 @@ export default function PetaUMKM() {
       L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; OSM &copy; CARTO', subdomains: 'abcd', maxZoom: 20
       }).addTo(mapRef.current);
-       if (!markersLayerGroupRef.current && mapRef.current) {
-         markersLayerGroupRef.current = L.layerGroup().addTo(mapRef.current);
-       } else {
-       }
+      if (!markersLayerGroupRef.current && mapRef.current) {
+        markersLayerGroupRef.current = L.layerGroup().addTo(mapRef.current);
+      } else {
+      }
     } else {
-        if (!mapReady) console.log("Map belum siap (mapReady false)");
-        if (!L) console.log("Leaflet (L) belum siap");
-        if (mapRef.current) console.log("Map ref sudah ada");
-        if (!document.getElementById('map')) console.log("Elemen #map tidak ditemukan");
+      if (!mapReady) console.log("Map belum siap (mapReady false)");
+      if (!L) console.log("Leaflet (L) belum siap");
+      if (mapRef.current) console.log("Map ref sudah ada");
+      if (!document.getElementById('map')) console.log("Elemen #map tidak ditemukan");
     }
 
     return () => {
@@ -350,8 +350,8 @@ export default function PetaUMKM() {
     const categoryIcons = categoryIconsRef.current;
 
     if (!currentMap || !L || !markersLayerGroup || Object.keys(categoryIcons).length === 0 || isLoadingData) {
-        if (markersLayerGroup) markersLayerGroup.clearLayers();
-        return;
+      if (markersLayerGroup) markersLayerGroup.clearLayers();
+      return;
     }
     markersLayerGroup.clearLayers();
 
@@ -365,8 +365,8 @@ export default function PetaUMKM() {
       const selectedIcon = categoryIcons[categoryKey] || categoryIcons.fallback;
 
       if (!selectedIcon) {
-          console.warn(`Ikon tidak ditemukan untuk kategori: ${umkm.category}`);
-          return;
+        console.warn(`Ikon tidak ditemukan untuk kategori: ${umkm.category}`);
+        return;
       }
 
       const marker = L.marker([umkm.lat, umkm.lng], { icon: selectedIcon });
@@ -374,30 +374,30 @@ export default function PetaUMKM() {
       const popupContent = ReactDOMServer.renderToString(popupComponent);
 
       marker.bindPopup(popupContent, {
-        className: 'custom-leaflet-popup' 
+        className: 'custom-leaflet-popup'
       });
 
       marker.on("popupopen", (e) => {
-            const btn = e.popup.getElement()?.querySelector<HTMLButtonElement>(`button[data-umkmid="${umkm.id}"]`);
-            if (btn) {
-              const newBtn = btn.cloneNode(true) as HTMLButtonElement;
-              btn.parentNode?.replaceChild(newBtn, btn);
-              
-              newBtn.onclick = () => {
-                setSelectedUMKM(umkm);
-                currentMap.closePopup();
-              };
-            }
-          });
+        const btn = e.popup.getElement()?.querySelector<HTMLButtonElement>(`button[data-umkmid="${umkm.id}"]`);
+        if (btn) {
+          const newBtn = btn.cloneNode(true) as HTMLButtonElement;
+          btn.parentNode?.replaceChild(newBtn, btn);
+
+          newBtn.onclick = () => {
+            setSelectedUMKM(umkm);
+            currentMap.closePopup();
+          };
+        }
+      });
       markersLayerGroup.addLayer(marker);
     });
 
   }, [umkmList, search, category, isLoadingData]);
 
-   /**
-   * Fungsi untuk mendapatkan lokasi pengguna saat ini, menampilkan marker
-   * lokasi di peta, dan menggeser peta ke lokasi tersebut.
-   */
+  /**
+  * Fungsi untuk mendapatkan lokasi pengguna saat ini, menampilkan marker
+  * lokasi di peta, dan menggeser peta ke lokasi tersebut.
+  */
   const handleUseMyLocation = () => {
     const L = LRef.current;
     const currentMap = mapRef.current;
@@ -407,16 +407,16 @@ export default function PetaUMKM() {
     };
 
     if (userLocationMarkerRef.current && currentMap.hasLayer(userLocationMarkerRef.current)) {
-        currentMap.removeLayer(userLocationMarkerRef.current);
-        userLocationMarkerRef.current = null;
+      currentMap.removeLayer(userLocationMarkerRef.current);
+      userLocationMarkerRef.current = null;
     }
     if (userLocationCircleRef.current && currentMap.hasLayer(userLocationCircleRef.current)) {
-        currentMap.removeLayer(userLocationCircleRef.current);
-        userLocationCircleRef.current = null;
+      currentMap.removeLayer(userLocationCircleRef.current);
+      userLocationCircleRef.current = null;
     }
 
     console.log("Mencari lokasi pengguna...");
-    currentMap.locate({setView: true, maxZoom: 17});
+    currentMap.locate({ setView: true, maxZoom: 17 });
 
     currentMap.once('locationfound', (e) => {
       console.log("Lokasi ditemukan:", e.latlng);
@@ -430,23 +430,23 @@ export default function PetaUMKM() {
     });
 
     currentMap.once('locationerror', (e) => {
-        console.debug("Location not available:", e.message);
-        // Don't show alert for location errors - it's optional
+      console.debug("Location not available:", e.message);
+      // Don't show alert for location errors - it's optional
     });
   };
-  
+
   /** Daftar item konfigurasi untuk komponen FloatingDock. */
-   const dockItems = [
-     {
-       title: "UMKM Sekitar",
-       icon: <IconList className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />,
-       onClick: () => setIsSidebarOpen(!isSidebarOpen),
-       ariaLabel: "Toggle Sidebar"
-     },
-     { title: "Cari UMKM", icon: <IconSearch className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />, onClick: () => { setIsSearchOpen(!isSearchOpen); setIsFilterOpen(false); } },
-     { title: "Filter Kategori", icon: <IconFilter className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />, onClick: () => { setIsFilterOpen(!isFilterOpen); setIsSearchOpen(false); } },
-     { title: "Lokasi Saya", icon: <IconCurrentLocation className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />, onClick: handleUseMyLocation }
-   ];
+  const dockItems = [
+    {
+      title: "UMKM Sekitar",
+      icon: <IconList className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />,
+      onClick: () => setIsSidebarOpen(!isSidebarOpen),
+      ariaLabel: "Toggle Sidebar"
+    },
+    { title: "Cari UMKM", icon: <IconSearch className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />, onClick: () => { setIsSearchOpen(!isSearchOpen); setIsFilterOpen(false); } },
+    { title: "Filter Kategori", icon: <IconFilter className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />, onClick: () => { setIsFilterOpen(!isFilterOpen); setIsSearchOpen(false); } },
+    { title: "Lokasi Saya", icon: <IconCurrentLocation className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />, onClick: handleUseMyLocation }
+  ];
   const categories = ["Semua", ...new Set(umkmList.map(u => u.category))];
 
   const filteredUMKMList = umkmList.filter(u =>
@@ -457,7 +457,7 @@ export default function PetaUMKM() {
   const handleSidebarItemClick = (umkm: UMKM) => {
     const currentMap = mapRef.current;
     const markersLayerGroup = markersLayerGroupRef.current;
-    const L = LRef.current; 
+    const L = LRef.current;
 
     if (currentMap && markersLayerGroup && L) {
       currentMap.setView([umkm.lat, umkm.lng], 17);
@@ -468,7 +468,7 @@ export default function PetaUMKM() {
           return latLng.lat === umkm.lat && latLng.lng === umkm.lng;
         }
         return false;
-      }) as import('leaflet').Marker | undefined; 
+      }) as import('leaflet').Marker | undefined;
 
 
       if (targetMarker) {
@@ -477,11 +477,11 @@ export default function PetaUMKM() {
 
     }
   };
- 
+
   if (!isClient) return null;
 
   return (
-    <div className="flex h-screen relative">
+    <div className="flex h-[calc(100vh-5rem)] relative mt-20">
       <AnimatePresence>
         {isSidebarOpen && (
           <motion.div
@@ -490,15 +490,15 @@ export default function PetaUMKM() {
             animate={isDesktop ? { x: 0, opacity: 1 } : { y: 0, opacity: 1 }}
             exit={isDesktop ? { x: "-100%", opacity: 0 } : { y: "100%", opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            
+
             style={isDesktop ? { width: `${sidebarWidth}px` } : {}}
 
             className="fixed bottom-0 left-0 right-0 h-72 bg-card border-t border-border overflow-hidden z-1000 shadow-lg
-                       md:absolute md:top-0 md:left-0 md:h-full md:border-r md:border-t-0"
+                      md:absolute md:top-0 md:left-0 md:h-full md:border-r md:border-t-0"
           >
             <UMKMSidebar
               items={filteredUMKMList}
-              onItemClick={handleSidebarItemClick} 
+              onItemClick={handleSidebarItemClick}
               isLoading={isLoadingData}
             />
             <div
@@ -509,33 +509,33 @@ export default function PetaUMKM() {
         )}
       </AnimatePresence>
 
-      <div 
+      <div
         className={cn(
-            "flex-1 flex flex-col relative h-full",
-            "ml-0" 
-          )}
-        style={(isSidebarOpen && isDesktop) ? { 
-            marginLeft: `${sidebarWidth}px`,
-            transition: 'margin-left 0.3s ease-in-out' 
-          } : {
-            marginLeft: '0px',
-            transition: 'margin-left 0.3s ease-in-out'
-          }}
+          "flex-1 flex flex-col relative h-full",
+          "ml-0"
+        )}
+        style={(isSidebarOpen && isDesktop) ? {
+          marginLeft: `${sidebarWidth}px`,
+          transition: 'margin-left 0.3s ease-in-out'
+        } : {
+          marginLeft: '0px',
+          transition: 'margin-left 0.3s ease-in-out'
+        }}
       >
         <div id="map" className="flex-1 h-full w-full z-400" />
       </div>
 
       {isClient && (
-          <FloatingDock
-            items={dockItems}
-            desktopClassName="fixed bottom-5 left-1/2 -translate-x-1/2 z-[1001]"
-            mobileClassName={cn(
-              "fixed right-5 z-[1001] transition-all duration-300 ease-in-out",
-              isSidebarOpen 
-                ? "bottom-[calc(16rem+1.25rem)]"
-                : "bottom-5"
-            )}
-          />
+        <FloatingDock
+          items={dockItems}
+          desktopClassName="fixed bottom-5 left-1/2 -translate-x-1/2 z-[1001]"
+          mobileClassName={cn(
+            "fixed right-5 z-[1001] transition-all duration-300 ease-in-out",
+            isSidebarOpen
+              ? "bottom-[calc(16rem+1.25rem)]"
+              : "bottom-5"
+          )}
+        />
       )}
 
       <AnimatePresence>
@@ -546,14 +546,14 @@ export default function PetaUMKM() {
             exit={{ opacity: 0, y: 20 }}
             className={cn(
               "fixed left-1/2 -translate-x-1/2 z-1002 p-2 bg-card border rounded-lg shadow-xl flex items-center gap-2 transition-all duration-300 ease-in-out",
-              (isSidebarOpen && !isDesktop) 
-                ? "bottom-[calc(20rem+1.5rem)]" 
-                : "bottom-[calc(4rem+1.5rem)]"  
+              (isSidebarOpen && !isDesktop)
+                ? "bottom-[calc(20rem+1.5rem)]"
+                : "bottom-[calc(4rem+1.5rem)]"
             )}
           >
-            <IconSearch className="h-5 w-5 text-muted-foreground"/>
+            <IconSearch className="h-5 w-5 text-muted-foreground" />
             <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari nama UMKM..." className="border-none focus:ring-0 bg-transparent text-sm w-60" autoFocus />
-            <button onClick={() => setIsSearchOpen(false)} className="p-1 rounded-full hover:bg-muted"> <IconX className="h-4 w-4 text-muted-foreground"/> </button>
+            <button onClick={() => setIsSearchOpen(false)} className="p-1 rounded-full hover:bg-muted"> <IconX className="h-4 w-4 text-muted-foreground" /> </button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -566,17 +566,17 @@ export default function PetaUMKM() {
             exit={{ opacity: 0, y: 20 }}
             className={cn(
               "fixed left-1/2 -translate-x-1/2 z-1002 p-3 bg-card border rounded-lg shadow-xl flex flex-col gap-2 w-60 transition-all duration-300 ease-in-out",
-              (isSidebarOpen && !isDesktop) 
-                ? "bottom-[calc(20rem+1.5rem)]" 
-                : "bottom-[calc(4rem+1.5rem)]"  
+              (isSidebarOpen && !isDesktop)
+                ? "bottom-[calc(20rem+1.5rem)]"
+                : "bottom-[calc(4rem+1.5rem)]"
             )}
-            >
+          >
             <div className="flex justify-between items-center mb-1">
               <span className="text-sm font-medium">Filter Kategori</span>
-              <button onClick={() => setIsFilterOpen(false)} className="p-1 rounded-full hover:bg-muted -mr-1"> <IconX className="h-4 w-4 text-muted-foreground"/> </button>
+              <button onClick={() => setIsFilterOpen(false)} className="p-1 rounded-full hover:bg-muted -mr-1"> <IconX className="h-4 w-4 text-muted-foreground" /> </button>
             </div>
             <select value={category} onChange={(e) => setCategory(e.target.value)} className="border rounded-md p-2 text-sm w-full bg-background" >
-              {categories.map(cat => ( <option key={cat} value={cat}>{cat}</option>))}
+              {categories.map(cat => (<option key={cat} value={cat}>{cat}</option>))}
             </select>
           </motion.div>
         )}
@@ -584,9 +584,9 @@ export default function PetaUMKM() {
 
       <AnimatePresence>
         {selectedUMKM && (
-          <UMKMDetailCard 
-            umkm={selectedUMKM} 
-            onClose={() => setSelectedUMKM(null)} 
+          <UMKMDetailCard
+            umkm={selectedUMKM}
+            onClose={() => setSelectedUMKM(null)}
           />
         )}
       </AnimatePresence>

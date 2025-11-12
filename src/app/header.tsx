@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 import { useAuth } from "../contexts/OptimizedAuthContext";
 import { showLogoutConfirmation, showToast } from "../lib/sweetalert";
 import {
@@ -12,7 +14,7 @@ import {
   MobileNav,
   MobileNavHeader,
   MobileNavMenu,
-  MobileNavToggle
+  MobileNavToggle,
 } from "./components/ui/resizable-navbar";
 
 const navItems = [
@@ -24,9 +26,11 @@ const navItems = [
   { name: "FAQ", link: "/faq" },
 ];
 
-export default function Header() {
+// <-- TAMBAHKAN PROPS DI SINI
+export default function Header({ forceScrolled = false }: { forceScrolled?: boolean }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, profile, loading, signOut } = useAuth();
+  const pathname = usePathname();
 
   const handleMobileMenuToggle = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -39,14 +43,14 @@ export default function Header() {
   const handleSignOut = async () => {
     try {
       const result = await showLogoutConfirmation();
-      
+
       if (result.isConfirmed) {
         await signOut();
-        showToast('Berhasil keluar dari akun', 'success');
+        showToast("Berhasil keluar dari akun", "success");
       }
     } catch (error) {
-      console.error('Error signing out:', error);
-      showToast('Gagal keluar dari akun', 'error');
+      console.error("Error signing out:", error);
+      showToast("Gagal keluar dari akun", "error");
     }
   };
 
@@ -54,7 +58,7 @@ export default function Header() {
   if (loading) {
     return (
       <div className="fixed top-0 left-0 right-0 z-50">
-        <Navbar>
+        <Navbar forceVisible={forceScrolled}> {/* <-- TAMBAHKAN PROPS DI SINI */}
           <NavBody>
             <NavbarLogo />
             <NavItems items={navItems} />
@@ -67,12 +71,12 @@ export default function Header() {
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50">
-      <Navbar>
+      <Navbar forceVisible={forceScrolled}> {/* <-- TAMBAHKAN PROPS DI SINI */}
         {/* Desktop Navbar */}
         <NavBody>
           <NavbarLogo />
           <NavItems items={navItems} />
-          
+
           {/* Auth Buttons */}
           {user ? (
             <div className="flex items-center gap-3">
@@ -80,25 +84,26 @@ export default function Header() {
               <NavbarButton href="/orders" variant="secondary">
                 Pesanan Saya
               </NavbarButton>
-              
-              {profile?.role === 'admin' || profile?.role === 'super_admin' ? (
+
+              {profile?.role === "admin" || profile?.role === "super_admin" ? (
                 <NavbarButton href="/admin/dashboard" variant="secondary">
                   Admin
                 </NavbarButton>
               ) : null}
-              
+
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                  {profile?.full_name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase()}
+                  {profile?.full_name?.[0]?.toUpperCase() ||
+                    user.email?.[0]?.toUpperCase()}
                 </div>
                 <span className="text-sm font-medium hidden md:block">
-                  {profile?.full_name || user.email?.split('@')[0]}
+                  {profile?.full_name || user.email?.split("@")[0]}
                 </span>
               </div>
-              
-              <NavbarButton 
+
+              <NavbarButton
                 as="button"
-                onClick={handleSignOut} 
+                onClick={handleSignOut}
                 variant="secondary"
               >
                 Keluar
@@ -125,22 +130,36 @@ export default function Header() {
               onClick={handleMobileMenuToggle}
             />
           </MobileNavHeader>
-          
+
           <MobileNavMenu
             isOpen={isMobileMenuOpen}
             onClose={handleMobileItemClick}
           >
-            {navItems.map((item, idx) => (
-              <a
-                key={`mobile-${idx}`}
-                href={item.link}
-                onClick={handleMobileItemClick}
-                className="w-full px-4 py-3 text-left text-lg font-medium text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-neutral-100 transition-colors"
-              >
-                {item.name}
-              </a>
-            ))}
-            
+            {navItems.map((item, idx) => {
+              // --- LOGIKA BARU UNTUK HALAMAN AKTIF ---
+              const isActive =
+                item.link === "/"
+                  ? pathname === "/"
+                  : pathname.startsWith(item.link);
+              // ------------------------------------
+
+              return (
+                <a
+                  key={`mobile-${idx}`}
+                  href={item.link}
+                  onClick={handleMobileItemClick}
+                  className={cn(
+                    "block px-4 py-2 text-sm rounded-md transition-colors",
+                    isActive
+                      ? "font-semibold text-purple-700 bg-purple-100 dark:text-purple-300 dark:bg-purple-900/30"
+                      : "text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700",
+                  )}
+                >
+                  {item.name}
+                </a>
+              );
+            })}
+
             {/* Mobile Auth */}
             <div className="border-t pt-4 mt-4">
               {user ? (
@@ -148,7 +167,7 @@ export default function Header() {
                   <div className="px-4 py-2 text-sm text-gray-500">
                     {profile?.full_name || user.email}
                   </div>
-                  
+
                   {/* Orders Link */}
                   <a
                     href="/orders"
@@ -157,8 +176,9 @@ export default function Header() {
                   >
                     Pesanan Saya
                   </a>
-                  
-                  {profile?.role === 'admin' || profile?.role === 'super_admin' ? (
+
+                  {profile?.role === "admin" ||
+                    profile?.role === "super_admin" ? (
                     <a
                       href="/admin/dashboard"
                       className="block px-4 py-2 text-sm text-blue-600 hover:bg-gray-100"
@@ -180,10 +200,18 @@ export default function Header() {
               ) : (
                 <>
                   <div className="space-y-2 px-4">
-                    <NavbarButton href="/auth/login" variant="secondary" className="w-full">
+                    <NavbarButton
+                      href="/auth/login"
+                      variant="secondary"
+                      className="w-full"
+                    >
                       Masuk
                     </NavbarButton>
-                    <NavbarButton href="/auth/register" variant="primary" className="w-full">
+                    <NavbarButton
+                      href="/auth/register"
+                      variant="primary"
+                      className="w-full"
+                    >
                       Daftar
                     </NavbarButton>
                   </div>

@@ -14,6 +14,7 @@ export default function LayoutContent({
   const isAdminRoute = pathname?.startsWith("/admin");
   // Check jika ini halaman detail produk (format: /produk/[id])
   const isProductDetailRoute = pathname?.match(/^\/produk\/[^/]+$/);
+  const isMapPage = pathname === "/peta-umkm"; // <-- TAMBAHKAN INI
 
   // Untuk admin routes atau product detail, gak render Header, Footer, FAB
   if (isAdminRoute || isProductDetailRoute) {
@@ -23,7 +24,7 @@ export default function LayoutContent({
   // Untuk routes biasa, render semua
   return (
     <>
-      <Header />
+      <Header forceScrolled={isMapPage} /> {/* <-- UBAH INI */}
       <main className="relative">{children}</main>
       <Footer />
       <FloatingActionButton />

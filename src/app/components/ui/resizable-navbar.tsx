@@ -1,20 +1,21 @@
 "use client";
 import { cn } from "@/lib/utils";
+import { usePathname } from "next/navigation";
 import { IconMenu2, IconX } from "@tabler/icons-react";
 import {
   motion,
   AnimatePresence,
   useScroll,
   useMotionValueEvent,
-} from "motion/react";
+} from "framer-motion"; // Ganti 'motion/react' menjadi 'framer-motion' jika ada error
 
 import Link from "next/link";
 import React, { useRef, useState } from "react";
 
-
 interface NavbarProps {
   children: React.ReactNode;
   className?: string;
+  forceVisible?: boolean; // <-- TAMBAHKAN INI
 }
 
 interface NavBodyProps {
@@ -50,16 +51,16 @@ interface MobileNavMenuProps {
   onClose: () => void;
 }
 
-export const Navbar = ({ children, className }: NavbarProps) => {
+export const Navbar = ({ children, className, forceVisible = false }: NavbarProps) => { // <-- TAMBAHKAN 'forceVisible'
   const ref = useRef<HTMLDivElement>(null);
   const { scrollY } = useScroll({
     target: ref,
     offset: ["start start", "end start"],
   });
-  const [visible, setVisible] = useState<boolean>(false);
+  const [visible, setVisible] = useState<boolean>(forceVisible); // <-- UBAH INI
 
   useMotionValueEvent(scrollY, "change", (latest) => {
-    if (latest > 100) {
+    if (forceVisible || latest > 100) { // <-- UBAH INI
       setVisible(true);
     } else {
       setVisible(false);
@@ -75,9 +76,9 @@ export const Navbar = ({ children, className }: NavbarProps) => {
       {React.Children.map(children, (child) =>
         React.isValidElement(child)
           ? React.cloneElement(
-              child as React.ReactElement<{ visible?: boolean }>,
-              { visible },
-            )
+            child as React.ReactElement<{ visible?: boolean }>,
+            { visible },
+          )
           : child,
       )}
     </motion.div>
@@ -116,6 +117,7 @@ export const NavBody = ({ children, className, visible }: NavBodyProps) => {
 
 export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
   const [hovered, setHovered] = useState<number | null>(null);
+  const pathname = usePathname();
 
   return (
     <motion.div
@@ -125,23 +127,45 @@ export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
         className,
       )}
     >
-      {items.map((item, idx) => (
-        <a
-          onMouseEnter={() => setHovered(idx)}
-          onClick={onItemClick}
-          className="relative px-4 py-2 text-neutral-600 dark:text-neutral-300"
-          key={`link-${idx}`}
-          href={item.link}
-        >
-          {hovered === idx && (
-            <motion.div
-              layoutId="hovered"
-              className="absolute inset-0 h-full w-full rounded-full bg-gray-100 dark:bg-neutral-800"
-            />
-          )}
-          <span className="relative z-20">{item.name}</span>
-        </a>
-      ))}
+      {items.map((item, idx) => {
+        const isActive =
+          item.link === "/"
+            ? pathname === "/"
+            : pathname.startsWith(item.link);
+
+        return (
+          <a
+            onMouseEnter={() => setHovered(idx)}
+            onClick={onItemClick}
+            className={cn(
+              "relative px-4 py-2 text-neutral-600 transition duration-200 hover:text-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100",
+              isActive && "font-semibold text-purple-700 dark:text-purple-300",
+            )}
+            key={`link-${idx}`}
+            href={item.link}
+          >
+            { }
+            { }
+            {isActive && (
+              <motion.div
+                layoutId="active-bg"
+                className="absolute inset-0 h-full w-full rounded-full bg-purple-100 dark:bg-purple-900/30"
+              />
+            )}
+            { }
+
+            { }
+            { }
+            {hovered === idx && (
+              <motion.div
+                layoutId="hovered"
+                className="absolute inset-0 h-full w-full rounded-full bg-gray-100 dark:bg-neutral-800"
+              />
+            )}
+            <span className="relative z-20">{item.name}</span>
+          </a>
+        );
+      })}
     </motion.div>
   );
 };
@@ -272,9 +296,9 @@ export const NavbarButton = ({
   className?: string;
   variant?: "primary" | "secondary" | "dark" | "gradient";
 } & (
-  | React.ComponentPropsWithoutRef<"a">
-  | React.ComponentPropsWithoutRef<"button">
-)) => {
+    | React.ComponentPropsWithoutRef<"a">
+    | React.ComponentPropsWithoutRef<"button">
+  )) => {
   const baseStyles =
     "px-4 py-2 rounded-md bg-white button bg-white text-black text-sm font-bold relative cursor-pointer hover:-translate-y-0.5 transition duration-200 inline-block text-center";
 

@@ -12,15 +12,15 @@ export default function Home() {
     <>
       <ThemeToggle />
       <HeroSection />
-      
+
       {/* <UMKMSection /> */}
       <AppleCarouselSection />
       <ProductSection />
-      
+
       {/* 🤖 Recommendations Section */}
       <section className="py-16 bg-linear-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         <div className="max-w-7xl mx-auto px-4 space-y-16">
-          <RecommendationSection 
+          <RecommendationSection
             title="Rekomendasi Produk Untuk Anda"
             className="space-y-16"
             showSimilarProducts={false}
@@ -30,7 +30,7 @@ export default function Home() {
           />
         </div>
       </section>
-      
+
       <TestimonialSection />
       <RegisterUMKMSection />
     </>
