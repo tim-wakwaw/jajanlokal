@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "motion/react";
 import EnhancedProductCard from "@/app/components/EnhancedProductCard";
-import SmartSearchBar from "@/app/components/SmartSearchBar";
+import ProductFilter from "@/app/components/ProductFilter"; // Menggunakan komponen filter yang sudah diperbaiki
 import { ProductService } from "../../lib/productService";
 import { supabase } from "@/lib/supabase";
 
@@ -21,19 +21,54 @@ interface ProductWithUmkm {
   _uniqueKey?: string;
 }
 
+// Tipe data filter (HANYA 3 ITEM SEKARANG)
+interface AppliedFilters {
+  search: string;
+  category: string;
+  sortBy: string;
+}
+
+// --- KOMPONEN SKELETON (TIDAK BERUBAH) ---
+const ProductGridSkeleton = () => (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+    {Array.from({ length: 8 }).map((_, index) => (
+      <div key={index} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+        <div className="h-48 bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+        <div className="p-5 space-y-3">
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-20"></div>
+          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-24"></div>
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+          <div className="flex gap-3">
+            <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-24"></div>
+            <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse flex-1"></div>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+);
+// --------------------------------------------------
+
 export default function ProdukPage() {
   const [products, setProducts] = useState<ProductWithUmkm[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [sortBy] = useState<string>("created_at");
+
+  const [categories, setCategories] = useState<string[]>(["all"]);
+
+  // State untuk filter yang *sedang diterapkan* (KEMBALI KE 3 ITEM)
+  const [appliedFilters, setAppliedFilters] = useState<AppliedFilters>({
+    search: "",
+    category: "all",
+    sortBy: "created_at",
+  });
+
   const [currentPage, setCurrentPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(false);
 
-  const ITEMS_PER_PAGE = 8; // kurangi jumlah item untuk loading lebih cepat
+  const ITEMS_PER_PAGE = 8;
 
-  // Fetch products with pagination - dengan error handling yang lebih baik
   const fetchProducts = useCallback(async (page: number = 1, reset: boolean = true) => {
     try {
       if (page === 1) {
@@ -42,12 +77,13 @@ export default function ProdukPage() {
         setLoadingMore(true);
       }
 
+      // Gunakan state 'appliedFilters' untuk query (HANYA 3 FILTER)
       const result = await ProductService.getProductsPaginated({
         page,
         limit: ITEMS_PER_PAGE,
-        category: selectedCategory !== 'all' ? selectedCategory : undefined,
-        search: searchQuery || undefined,
-        sortBy
+        category: appliedFilters.category !== 'all' ? appliedFilters.category : undefined,
+        search: appliedFilters.search || undefined,
+        sortBy: appliedFilters.sortBy,
       });
 
       if (result.success && result.data) {
@@ -62,21 +98,12 @@ export default function ProdukPage() {
           umkmName: product.umkmName,
           umkmId: product.umkmId,
           umkmCategory: product.category,
-          // Add unique identifier to prevent key collision
           _uniqueKey: `${product.id}-${page}-${idx}`,
         }));
-
-        // Debug: Check for duplicate IDs
-        const ids = formattedProducts.map(p => p.id);
-        const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index);
-        if (duplicates.length > 0) {
-          console.warn('Duplicate product IDs found:', duplicates);
-        }
 
         if (reset || page === 1) {
           setProducts(formattedProducts);
         } else {
-          // Prevent duplicates when loading more
           setProducts(prev => {
             const existingIds = new Set(prev.map(p => p.id));
             const newProducts = formattedProducts.filter(p => !existingIds.has(p.id));
@@ -87,7 +114,6 @@ export default function ProdukPage() {
         setCurrentPage(result.currentPage || 1);
         setHasNextPage(result.hasNextPage || false);
       } else {
-        // Jika tidak ada data, set empty array
         if (reset || page === 1) {
           setProducts([]);
         }
@@ -95,7 +121,6 @@ export default function ProdukPage() {
       }
     } catch (error) {
       console.error('Error loading products:', error);
-      // Set empty state pada error
       if (reset || page === 1) {
         setProducts([]);
       }
@@ -104,94 +129,79 @@ export default function ProdukPage() {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [selectedCategory, searchQuery, sortBy]);
+  }, [appliedFilters]);
 
-  // Initial load + Realtime subscription
+  // Ambil kategori (hanya sekali)
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const result = await ProductService.getCategories();
+        if (result.success && result.data) {
+          const uniqueCategories = [...new Set(result.data)];
+          setCategories(['all', ...uniqueCategories.filter(cat => cat !== 'all')]);
+        }
+      } catch (err) {
+        console.error('Error fetching categories:', err);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Fetch data saat filter berubah
   useEffect(() => {
     fetchProducts(1, true);
 
-    // 🔥 Setup Realtime subscription for products table
     const channel = supabase
       .channel('products_changes')
       .on(
         'postgres_changes',
         {
-          event: '*', // Listen to INSERT, UPDATE, DELETE
+          event: '*',
           schema: 'public',
           table: 'products'
         },
         (payload) => {
           console.log('🔄 Product changed:', payload)
-          fetchProducts(1, true) // Refresh from page 1
+          fetchProducts(1, true)
         }
       )
       .subscribe()
 
-    // Cleanup on unmount
     return () => {
       supabase.removeChannel(channel)
     }
   }, [fetchProducts]);
 
-  // Load more products
+  // Load more
   const loadMore = () => {
     if (hasNextPage && !loadingMore) {
       fetchProducts(currentPage + 1, false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-linear-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950">
-        <div className="relative z-10 pt-20">
-          <div className="container mx-auto px-4 py-8">
-            {/* Header skeleton */}
-            <div className="text-center mb-12">
-              <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-lg mb-6 animate-pulse"></div>
-              <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-lg max-w-3xl mx-auto mb-8 animate-pulse"></div>
-              <div className="flex justify-center gap-8">
-                <div className="text-center">
-                  <div className="h-10 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-2"></div>
-                  <div className="h-4 w-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-                </div>
-              </div>
-            </div>
+  // Callback untuk tombol "Cari" (KEMBALI KE 3 FILTER)
+  const handleFilterSubmit = useCallback((filters: AppliedFilters) => {
+    setAppliedFilters(filters);
+    setCurrentPage(1);
+  }, []);
 
-            {/* Filter skeleton */}
-            <div className="mb-8 space-y-4">
-              <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
-              <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
-            </div>
+  // Callback untuk tombol "Reset" (KEMBALI KE 3 FILTER)
+  const handleFilterReset = useCallback(() => {
+    setAppliedFilters({
+      search: "",
+      category: "all",
+      sortBy: "created_at",
+    });
+    setCurrentPage(1);
+  }, []);
 
-            {/* Products grid skeleton */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {Array.from({ length: 8 }).map((_, index) => (
-                <div key={index} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
-                  <div className="h-48 bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
-                  <div className="p-5 space-y-3">
-                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-20"></div>
-                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-24"></div>
-                    <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-                    <div className="flex gap-3">
-                      <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-24"></div>
-                      <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse flex-1"></div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950">
       <div className="relative z-10 pt-20">
         <div className="container mx-auto px-4 py-8">
-          {/* Header - tanpa animasi berlebihan */}
+
+          {/* Header & Filter - SELALU TAMPIL */}
           <div className="text-center mb-8">
             <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-linear-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
               Produk UMKM Lokal
@@ -199,13 +209,15 @@ export default function ProdukPage() {
             <p className="text-xl text-neutral-600 dark:text-neutral-400 max-w-3xl mx-auto leading-relaxed mb-8">
               Temukan beragam produk berkualitas dari UMKM terpercaya di sekitar Anda.
             </p>
-            
-            {/* Smart Search */}
+
             <div className="max-w-3xl mx-auto mb-8">
-              <SmartSearchBar />
+              <ProductFilter
+                categories={categories}
+                onFilterSubmit={handleFilterSubmit}
+                onFilterReset={handleFilterReset}
+              />
             </div>
-            
-            {/* Stats */}
+
             <div className="flex justify-center gap-8 mt-6">
               <div className="text-center">
                 <div className="text-3xl font-bold text-blue-600">
@@ -216,8 +228,10 @@ export default function ProdukPage() {
             </div>
           </div>
 
-          {/* Products Grid - optimized rendering */}
-          {products.length > 0 ? (
+          {/* Grid/Skeleton/Hasil Kosong */}
+          {loading ? (
+            <ProductGridSkeleton />
+          ) : products.length > 0 ? (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                 {products.map((product, index) => (
@@ -225,9 +239,9 @@ export default function ProdukPage() {
                     key={product._uniqueKey || `${product.id}-${index}`}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ 
-                      duration: 0.3, 
-                      delay: Math.min(index * 0.05, 0.5) // Limit delay
+                    transition={{
+                      duration: 0.3,
+                      delay: Math.min(index * 0.05, 0.5)
                     }}
                   >
                     <EnhancedProductCard
@@ -246,7 +260,7 @@ export default function ProdukPage() {
                 ))}
               </div>
 
-              {/* Load More Button */}
+              {/* Tombol Load More */}
               {hasNextPage && (
                 <div className="text-center mt-12">
                   <button
@@ -294,10 +308,7 @@ export default function ProdukPage() {
                   Coba ubah filter atau kata kunci pencarian Anda
                 </p>
                 <button
-                  onClick={() => {
-                    setSelectedCategory("all");
-                    setSearchQuery("");
-                  }}
+                  onClick={handleFilterReset}
                   className="px-6 py-3 bg-linear-to-r from-blue-500 to-purple-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-200"
                 >
                   Reset Filter
@@ -305,6 +316,7 @@ export default function ProdukPage() {
               </div>
             </div>
           )}
+
         </div>
       </div>
     </div>

@@ -121,14 +121,18 @@ export class ProductService {
     category?: string
     search?: string
     sortBy?: string
+    // HAPUS filter yang menyebabkan error
+    // minRating?: number;
+    // priceRange?: { min?: number; max?: number };
   } = {}) {
     try {
-      const { 
-        page = 1, 
-        limit = 12, 
-        category, 
-        search, 
-        sortBy = 'created_at' 
+      const {
+        page = 1,
+        limit = 12,
+        category,
+        search,
+        sortBy = 'created_at'
+        // HAPUS filter yang menyebabkan error
       } = options
 
       const offset = (page - 1) * limit
@@ -150,7 +154,7 @@ export class ProductService {
             category,
             image
           )
-        `, { count: 'exact' })
+        `, { count: 'exact' }) // HAPUS 'rating' dari select
         .eq('is_available', true)
 
       // Apply category filter
@@ -158,29 +162,29 @@ export class ProductService {
         query = query.eq('umkm.category', category)
       }
 
-      // Apply search filter - search in product name only for simplicity
-      // Searching in both product name AND umkm name with OR is complex in Supabase
-      // and requires either 2 queries or RPC function
+      // Apply search filter
       if (search) {
         query = query.ilike('name', `%${search}%`)
       }
 
-      // Apply sorting dengan order sekunder by id untuk konsistensi
-      const orderColumn = sortBy === 'price-low' || sortBy === 'price-high' ? 'price' : 
-                          sortBy === 'stock' ? 'stock' : 'created_at'
-      const ascending = sortBy === 'price-low' ? true : 
-                       sortBy === 'name' ? true : false
+      // HAPUS Logika filter rating dan harga
+
+      // Apply sorting
+      const orderColumn = sortBy === 'price-low' || sortBy === 'price-high' ? 'price' :
+        sortBy === 'stock' ? 'stock' : 'created_at'
+      const ascending = sortBy === 'price-low' ? true :
+        sortBy === 'name' ? true : false
 
       query = query
         .order(orderColumn, { ascending })
-        .order('id', { ascending: true }) // Secondary sort by id untuk konsistensi
+        .order('id', { ascending: true }) // Secondary sort by id
         .range(offset, offset + limit - 1)
 
       const { data, error, count } = await query
 
       if (error) {
-        // Silent fail for missing tables during development
-        // Return empty result if table doesn't exist
+        // INI ADALAH ERROR YANG MUNCUL DI SCREENSHOT ANDA (image_72fbc5.png)
+        console.error('Supabase query error:', error); // Tampilkan error jika ada
         return {
           success: true,
           data: [],
@@ -191,7 +195,7 @@ export class ProductService {
         }
       }
 
-      // Format data dan remove duplicates
+      // Format data
       const formattedProducts: FormattedProduct[] = (data as unknown as ProductData[]).map((item: ProductData) => ({
         id: item.id,
         name: item.name,
@@ -204,17 +208,17 @@ export class ProductService {
         umkmName: item.umkm.name,
         category: item.umkm.category,
         umkmImage: item.umkm.image,
-        umkmRating: 4.5,
+        umkmRating: 4.5, // KEMBALIKAN ke default rating
         createdAt: item.created_at
       }))
 
       // Remove any potential duplicates based on ID
-      const uniqueProducts = formattedProducts.filter((product, index, arr) => 
+      const uniqueProducts = formattedProducts.filter((product, index, arr) =>
         arr.findIndex(p => p.id === product.id) === index
       )
 
-      return { 
-        success: true, 
+      return {
+        success: true,
         data: uniqueProducts,
         totalCount: count || 0,
         currentPage: page,
@@ -222,11 +226,11 @@ export class ProductService {
         hasNextPage: (count || 0) > offset + limit
       }
 
-    } catch {
-      // Silent fail for development - return empty result
-      return { 
-        success: true, 
-        data: [], 
+    } catch (err) {
+      console.error("Service error:", err);
+      return {
+        success: true,
+        data: [],
         totalCount: 0,
         currentPage: 1,
         totalPages: 0,
@@ -249,16 +253,17 @@ export class ProductService {
         .select('category')
 
       if (error) {
+        // INI ADALAH ERROR DARI (image_72f91b.png)
         console.error('Error fetching categories:', error)
         return { success: true, data: [] }
       }
 
       const categories = [...new Set(data.map(item => item.category))];
-      
+
       // Update cache
       this.categoriesCache = categories;
       this.cacheTimestamp = now;
-      
+
       return { success: true, data: categories }
     } catch (error) {
       console.error('Error fetching categories:', error)
@@ -288,7 +293,7 @@ export class ProductService {
             lng,
             image
           )
-        `)
+        `) // HAPUS 'rating' dari select
         .eq('id', productId)
         .single()
 
@@ -311,11 +316,12 @@ export class ProductService {
           id: product.umkm.id,
           name: product.umkm.name,
           category: product.umkm.category,
-          description: '',
-          address: '',
-          lat: 0,
-          lng: 0,
-          image: product.umkm.image
+          description: product.umkm.description || '', // Gunakan tipe yang benar
+          address: product.umkm.alamat || '',
+          lat: product.umkm.lat || 0,
+          lng: product.umkm.lng || 0,
+          image: product.umkm.image,
+          rating: 4.5 // KEMBALIKAN ke default rating
         }
       }
 

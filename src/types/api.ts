@@ -28,12 +28,20 @@ export interface ProductData {
   is_available: boolean
   description: string
   created_at: string
+  // --- PERBAIKAN: Menambahkan kembali properti yang hilang ---
   umkm: {
     id: string
     name: string
     category: string
     image: string
+    // Properti ini ada di query getProductById
+    description?: string
+    alamat?: string
+    lat?: number
+    lng?: number
+    rating?: number
   }
+  // --- AKHIR PERBAIKAN ---
 }
 
 export interface UMKMRequestData {

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { motion } from "framer-motion";
 import EnhancedProductCard from "@/app/components/EnhancedProductCard";
-import ProductFilter from "@/app/components/ProductFilter";
+import ProductFilter from "@/app/components/ProductFilter"; // Ini sudah benar
 import { OptimizedApiService } from "../../lib/OptimizedApiService";
 
 interface ProductWithUmkm {
@@ -19,7 +19,7 @@ interface ProductWithUmkm {
   umkmCategory: string;
 }
 
-// Loading skeleton component
+// ... (Komponen ProductSkeleton tidak berubah) ...
 const ProductSkeleton = () => (
   <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-xl shadow-lg p-6 border border-white/20 animate-pulse">
     <div className="w-full h-48 bg-gray-300 dark:bg-gray-600 rounded-lg mb-4"></div>
@@ -29,7 +29,7 @@ const ProductSkeleton = () => (
   </div>
 );
 
-// Stats component untuk menampilkan info loading
+// ... (Komponen StatsCard tidak berubah) ...
 const StatsCard = ({ title, value, loading }: { title: string; value: number; loading: boolean }) => (
   <div className="text-center">
     <div className="text-3xl font-bold text-blue-600">
@@ -47,16 +47,20 @@ function ProductsContent() {
   const [allProducts, setAllProducts] = useState<ProductWithUmkm[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [sortBy, setSortBy] = useState<string>("created_at");
+
+  // --- STATE FILTER YANG DITERAPKAN ---
+  const [appliedCategory, setAppliedCategory] = useState<string>("all");
+  const [appliedSearch, setAppliedSearch] = useState<string>("");
+  const [appliedSort, setAppliedSort] = useState<string>("created_at");
+  // ------------------------------------
+
   const [categories, setCategories] = useState<string[]>(["all"]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pagination, setPagination] = useState<{ 
-    currentPage: number; 
-    totalPages: number; 
+  const [pagination, setPagination] = useState<{
+    currentPage: number;
+    totalPages: number;
     totalItems?: number;
-    hasNextPage: boolean; 
+    hasNextPage: boolean;
   } | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
 
@@ -90,12 +94,13 @@ function ProductsContent() {
         setLoadingMore(true);
       }
 
+      // Gunakan state 'applied' untuk query
       const result = await OptimizedApiService.getProducts({
         page,
         limit: 12,
-        category: selectedCategory !== 'all' ? selectedCategory : undefined,
-        search: searchQuery || undefined,
-        sortBy: sortBy !== 'newest' ? sortBy : undefined
+        category: appliedCategory !== 'all' ? appliedCategory : undefined,
+        search: appliedSearch || undefined,
+        sortBy: appliedSort !== 'newest' ? appliedSort : undefined // 'newest' sepertinya default?
       });
 
       if (!result.error && result.products) {
@@ -131,13 +136,13 @@ function ProductsContent() {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [selectedCategory, searchQuery, sortBy]);
+  }, [appliedCategory, appliedSearch, appliedSort]); // Dependency diubah ke state 'applied'
 
-  // Fetch products when filters change
+  // Fetch products saat 'fetchProducts' (termasuk filternya) berubah
   useEffect(() => {
     setCurrentPage(1);
     fetchProducts(1, true);
-  }, [selectedCategory, searchQuery, sortBy, fetchProducts]);
+  }, [fetchProducts]); // HANYA bergantung pada fetchProducts
 
   // Load more products
   const loadMore = () => {
@@ -148,19 +153,28 @@ function ProductsContent() {
     }
   };
 
-  // Memoized filtered products for client-side search
-  const displayProducts = useMemo(() => {
-    if (searchQuery && allProducts.length > 0) {
-      return allProducts.filter(product => 
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.umkmName.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-    return allProducts;
-  }, [allProducts, searchQuery]);
+  // HAPUS: useMemo yang bermasalah. Server sudah memfilter data.
+  // const displayProducts = allProducts; // Langsung gunakan allProducts
 
-  // Loading state
+  // --- FUNGSI BARU UNTUK SUBMIT DAN RESET ---
+  const handleFilterSubmit = useCallback((filters: { search: string, category: string, sortBy: string }) => {
+    setAppliedSearch(filters.search);
+    setAppliedCategory(filters.category);
+    setAppliedSort(filters.sortBy);
+    setCurrentPage(1); // Selalu reset ke halaman 1 saat filter baru
+  }, []);
+
+  const handleFilterReset = useCallback(() => {
+    setAppliedSearch("");
+    setAppliedCategory("all");
+    setAppliedSort("created_at");
+    setCurrentPage(1);
+  }, []);
+  // ------------------------------------------
+
+  // ... (Loading state tidak berubah) ...
   if (loading && allProducts.length === 0) {
+    // ... (return skeleton) ...
     return (
       <div className="min-h-screen bg-linear-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950">
         <div className="relative z-10 pt-20">
@@ -169,7 +183,7 @@ function ProductsContent() {
             <div className="text-center mb-12">
               <div className="h-12 bg-gray-300 dark:bg-gray-600 rounded mb-6 max-w-md mx-auto animate-pulse"></div>
               <div className="h-6 bg-gray-300 dark:bg-gray-600 rounded mb-8 max-w-2xl mx-auto animate-pulse"></div>
-              
+
               {/* Stats Skeleton */}
               <div className="flex justify-center gap-8 mt-8">
                 {[1, 2, 3].map(i => (
@@ -195,8 +209,9 @@ function ProductsContent() {
     );
   }
 
-  // Error state
+  // ... (Error state tidak berubah) ...
   if (error) {
+    // ... (return error UI) ...
     return (
       <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950">
         <motion.div
@@ -225,7 +240,7 @@ function ProductsContent() {
     <div className="min-h-screen bg-linear-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
-      
+
       <div className="relative z-10 pt-20">
         <div className="container mx-auto px-4 py-8">
           {/* Header dengan animasi */}
@@ -239,10 +254,10 @@ function ProductsContent() {
               Produk UMKM Lokal
             </h1>
             <p className="text-xl text-neutral-600 dark:text-neutral-400 max-w-3xl mx-auto leading-relaxed">
-              Temukan beragam produk berkualitas dari UMKM terpercaya di sekitar Anda. 
+              Temukan beragam produk berkualitas dari UMKM terpercaya di sekitar Anda.
               Dukung ekonomi lokal dengan berbelanja langsung dari produsen.
             </p>
-            
+
             {/* Stats */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -251,18 +266,18 @@ function ProductsContent() {
               className="flex justify-center gap-8 mt-8"
             >
               <StatsCard
-                title="Produk" 
-                value={pagination?.totalItems || allProducts.length} 
+                title="Produk"
+                value={pagination?.totalItems || allProducts.length}
                 loading={false}
               />
               <StatsCard
-                title="UMKM" 
-                value={new Set(allProducts.map(p => p.umkmName)).size} 
+                title="UMKM"
+                value={new Set(allProducts.map(p => p.umkmName)).size}
                 loading={false}
               />
               <StatsCard
-                title="Kategori" 
-                value={categories.length - 1} 
+                title="Kategori"
+                value={categories.length - 1} // -1 untuk "all"
                 loading={false}
               />
             </motion.div>
@@ -274,15 +289,14 @@ function ProductsContent() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
           >
+            {/* --- PERBAIKAN DI SINI --- */}
+            {/* Ganti prop yang dikirim agar sesuai dengan ProductFilter.tsx yang baru */}
             <ProductFilter
               categories={categories}
-              selectedCategory={selectedCategory}
-              onCategoryChange={setSelectedCategory}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              sortBy={sortBy}
-              onSortChange={setSortBy}
+              onFilterSubmit={handleFilterSubmit}
+              onFilterReset={handleFilterReset}
             />
+            {/* --------------------------- */}
           </motion.div>
 
           {/* Results Info */}
@@ -294,9 +308,10 @@ function ProductsContent() {
           >
             <div className="bg-white/70 dark:bg-neutral-900/70 backdrop-blur-sm rounded-lg p-4 border border-white/20 dark:border-neutral-700/50">
               <p className="text-neutral-700 dark:text-neutral-300 font-medium">
-                📦 Menampilkan <span className="text-blue-600 font-bold">{displayProducts.length}</span> produk
-                {selectedCategory !== "all" && (
-                  <span className="text-purple-600 font-semibold"> dari kategori {selectedCategory}</span>
+                {/* Ganti displayProducts menjadi allProducts */}
+                📦 Menampilkan <span className="text-blue-600 font-bold">{allProducts.length}</span> produk
+                {appliedCategory !== "all" && ( // gunakan state 'applied'
+                  <span className="text-purple-600 font-semibold"> dari kategori {appliedCategory}</span>
                 )}
                 {pagination && (
                   <span className="text-gray-500 ml-2">
@@ -308,7 +323,7 @@ function ProductsContent() {
           </motion.div>
 
           {/* Products Grid */}
-          {displayProducts.length > 0 ? (
+          {allProducts.length > 0 ? ( // Ganti displayProducts menjadi allProducts
             <>
               <motion.div
                 initial={{ opacity: 0 }}
@@ -316,13 +331,14 @@ function ProductsContent() {
                 transition={{ duration: 0.6, delay: 0.6 }}
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
               >
-                {displayProducts.map((product, index) => (
+                {/* Ganti displayProducts menjadi allProducts */}
+                {allProducts.map((product, index) => (
                   <motion.div
                     key={`${product.id}-${index}`}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ 
-                      duration: 0.5, 
+                    transition={{
+                      duration: 0.5,
                       delay: 0.1 * (index % 8)
                     }}
                   >
@@ -342,7 +358,7 @@ function ProductsContent() {
                 ))}
               </motion.div>
 
-              {/* Load More Button */}
+              {/* Load More Button - (Tidak berubah) */}
               {pagination && pagination.hasNextPage && (
                 <motion.div
                   initial={{ opacity: 0 }}
@@ -352,11 +368,10 @@ function ProductsContent() {
                   <button
                     onClick={loadMore}
                     disabled={loadingMore}
-                    className={`px-8 py-3 rounded-lg font-medium transition-colors ${
-                      loadingMore
+                    className={`px-8 py-3 rounded-lg font-medium transition-colors ${loadingMore
                         ? 'bg-gray-400 cursor-not-allowed'
                         : 'bg-blue-600 hover:bg-blue-700'
-                    } text-white`}
+                      } text-white`}
                   >
                     {loadingMore ? (
                       <div className="flex items-center gap-2">
