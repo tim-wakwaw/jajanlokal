@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+// [!code ++]
+import { useSearchParams, useRouter } from "next/navigation";
+// [!code --]
 import { Search, Filter, SortAsc, Star, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-// Tipe data filter (LENGKAP DENGAN 4 FILTER)
+// ... (interface tidak berubah)
 interface FilterValues {
   search: string;
   category: string;
@@ -21,6 +23,7 @@ interface ProductFilterProps {
   onFilterReset: () => void;
 }
 
+
 export default function ProductFilter({
   categories,
   onFilterSubmit,
@@ -28,13 +31,14 @@ export default function ProductFilter({
 }: ProductFilterProps) {
 
   const searchParams = useSearchParams();
+  // [!code ++]
+  const router = useRouter(); // Tambahkan hook router
+  // [!code --]
   const kategoriFromUrl = searchParams.get('kategori');
 
-  // Memoize kategori yang valid. Ini akan ter-update saat prop 'categories' berubah.
+  // ... (validCategories, selectedCategory, searchQuery, sortBy, dll tidak berubah) ...
   const validCategories = useMemo(() => new Set(categories), [categories]);
 
-  // Gunakan "lazy initializer" untuk useState. Fungsi ini HANYA berjalan sekali saat mount.
-  // Kita BACA URL SEKALI saja untuk nilai awal.
   const [selectedCategory, setSelectedCategory] = useState(() => {
     return kategoriFromUrl || "all";
   });
@@ -48,48 +52,32 @@ export default function ProductFilter({
   const [showFilters, setShowFilters] = useState(false);
 
 
-  // [!code ++]
-  // *** INI ADALAH PERBAIKAN UTAMA ***
-  // Effect ini menyinkronkan state DARI URL atau Props.
-  // Dia TIDAK bergantung pada `selectedCategory`
+  // ... (useEffect tidak berubah) ...
   useEffect(() => {
-    // Tentukan apa kategori yang seharusnya
     const isUrlCategoryValid = kategoriFromUrl && validCategories.has(kategoriFromUrl);
 
     if (isUrlCategoryValid) {
-      // KASUS 1: URL valid (misal "Kuliner")
-      // Panggil setState HANYA jika state-nya belum sama.
       setSelectedCategory(kategoriFromUrl);
-
     } else if (kategoriFromUrl && !isUrlCategoryValid) {
-      // KASUS 2: URL ada tapi TIDAK valid (misal "makanan-enak" ATAU "Kuliner" tapi prop 'categories' belum dimuat)
-      // Jika 'categories' SUDAH dimuat (size > 1), kita tahu URL-nya pasti salah. Reset ke "all".
       if (validCategories.size > 1) {
         setSelectedCategory("all");
       }
-      // Jika 'categories' BELUM dimuat (size <= 1), kita biarkan dulu,
-      // effect ini akan jalan lagi nanti saat 'validCategories' berubah.
-
     } else if (!kategoriFromUrl) {
-      // KASUS 3: Tidak ada param URL. Pastikan "all".
       setSelectedCategory("all");
     }
-
-    // ESLint akan mengeluh 'selectedCategory' tidak ada di array, tapi ini DISENGAJA.
-    // Kita hanya ingin effect ini berjalan saat URL atau PROPS berubah.
   }, [kategoriFromUrl, validCategories]);
-  // [!code --]
 
 
-  // Cek apakah filter aktif (LENGKAP DENGAN 4 FILTER)
+  // ... (isDirty tidak berubah) ...
   const isDirty =
     searchQuery !== "" ||
-    selectedCategory !== (kategoriFromUrl && validCategories.has(kategoriFromUrl) ? kategoriFromUrl : "all") || // Cek vs default yg benar
+    selectedCategory !== "all" || // Ini sudah benar dari fix sebelumnya
     sortBy !== "created_at" ||
     minRating !== undefined ||
     priceMin !== "" ||
     priceMax !== "";
 
+  // ... (getCategoryIcon, getCategoryName, handleSubmit tidak berubah) ...
   const getCategoryIcon = (category: string): string => {
     const icons: { [key: string]: string } = {
       "all": "🛍️", "Kuliner": "🍽️", "Fashion": "👕",
@@ -102,7 +90,6 @@ export default function ProductFilter({
     return category === "all" ? "Semua Kategori" : category;
   };
 
-  // Kirim data filter ke parent (LENGKAP DENGAN 4 FILTER)
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onFilterSubmit({
@@ -118,23 +105,36 @@ export default function ProductFilter({
     setShowFilters(false);
   };
 
-  // Reset semua state internal (LENGKAP DENGAN 4 FILTER)
+
+  // [!code ++]
+  // *** INI ADALAH PERUBAHAN UTAMA ***
+  // Reset semua state internal DAN bersihkan URL
   const handleReset = () => {
+    // 1. Reset state lokal (agar UI filter langsung update)
     setSearchQuery("");
     setSelectedCategory("all");
     setSortBy("created_at");
     setMinRating(undefined);
     setPriceMin("");
     setPriceMax("");
-    onFilterReset();
+
+    // 2. Tutup panel filter
     setShowFilters(false);
+
+    // 3. Panggil onFilterReset (memberi tahu parent untuk reset 'appliedFilters')
+    onFilterReset();
+
+    // 4. Dorong URL baru tanpa query params
+    router.push('/produk', { scroll: false });
   };
+  // [!code --]
 
   return (
     <form className="w-full max-w-3xl mx-auto" onSubmit={handleSubmit}>
 
-      {/* Baris Atas: Search, Filter, Submit, Reset (Tidak Berubah) */}
+      {/* Baris Atas: Search, Filter, Submit, Reset */}
       <div className="relative flex items-center gap-2">
+        {/* ... (Input search tidak berubah) ... */}
         <div className="relative flex-1 group">
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-neutral-400 h-5 w-5" />
           <input
@@ -155,6 +155,7 @@ export default function ProductFilter({
           </button>
         </div>
 
+        {/* ... (Tombol Submit & Reset tidak berubah) ... */}
         <div className="flex items-center gap-2">
           <motion.button
             type="submit"
@@ -185,7 +186,7 @@ export default function ProductFilter({
         </div>
       </div>
 
-      {/* Panel Filter Lanjutan (DENGAN 4 FILTER) */}
+      {/* Panel Filter Lanjutan (Tidak ada perubahan di sini) */}
       <AnimatePresence>
         {showFilters && (
           <motion.div
@@ -202,7 +203,6 @@ export default function ProductFilter({
               </h2>
             </div>
 
-            {/* Grid 2x2 untuk 4 filter */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
               {/* Urutkan */}
@@ -233,7 +233,6 @@ export default function ProductFilter({
                   onChange={(e) => setMinRating(e.target.value ? Number(e.target.value) : undefined)}
                   className="w-full px-4 py-3 border-2 border-neutral-200 dark:border-neutral-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white/70 dark:bg-neutral-800/70 text-neutral-900 dark:text-neutral-100 appearance-none cursor-pointer"
                 >
-                  {/* PERBARUI OPSI RATING */}
                   <option value="">Semua Rating</option>
                   <option value="1">⭐ 1.0+</option>
                   <option value="2">⭐ 2.0+</option>
@@ -261,7 +260,7 @@ export default function ProductFilter({
                 </select>
               </div>
 
-              {/* Rentang Harga (SUDAH BENAR) */}
+              {/* Rentang Harga */}
               <div>
                 <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                   💸 Rentang Harga
