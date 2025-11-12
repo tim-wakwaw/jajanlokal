@@ -47,7 +47,7 @@ export default function RecommendationSection({
   showSimilarUMKM = true,
   showTrending = true
 }: RecommendationSectionProps) {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [recommendations, setRecommendations] = useState<{
     similar_products: Product[];
     similar_umkm: Product[];
@@ -60,55 +60,36 @@ export default function RecommendationSection({
     personalized_recommendations: []
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [userLocation, setUserLocation] = useState<{lat: number; lng: number} | null>(null);
-
-  // Get user location
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
-        },
-        (error) => {
-          // Silently handle location errors - recommendations can work without location
-          console.debug('Location not available:', error.message);
-        },
-        {
-          timeout: 10000,
-          enableHighAccuracy: false,
-          maximumAge: 300000 // 5 minutes cache
-        }
-      );
-    }
-  }, []);
 
   // Fetch recommendations with debounce
   useEffect(() => {
     const fetchRecommendations = async () => {
       setIsLoading(true);
       try {
+        // HANYA fetch data yang TIDAK memerlukan user login
+        // Trending products bisa ditampilkan tanpa login
+        if (showTrending) {
+          const trending = await getTrendingProducts(5);
+          setRecommendations(prev => ({ ...prev, trending_products: trending }));
+        }
+        
+        // Similar products (jika ada productId, tidak perlu login)
         if (productId && showSimilarProducts) {
           const similar = await getSimilarProducts(productId, 6);
           setRecommendations(prev => ({ ...prev, similar_products: similar }));
         }
         
+        // Similar UMKM (jika ada umkmId, tidak perlu login)
         if (umkmId && showSimilarUMKM) {
-          console.log('🏪 Fetching similar UMKM for:', umkmId, 'showSimilarUMKM:', showSimilarUMKM);
+          console.log('🏪 Fetching similar UMKM for:', umkmId);
           const similar = await getSimilarUMKM(umkmId, 6);
           console.log('🏪 Got similar UMKM results:', similar);
           setRecommendations(prev => ({ ...prev, similar_umkm: similar }));
         }
         
-        if (showTrending) {
-          const trending = await getTrendingProducts(5); // Top 5 best sellers
-          setRecommendations(prev => ({ ...prev, trending_products: trending }));
-        }
-        
-        if (showPersonalized) {
-          const personalized = await getPersonalizedRecommendations(user?.id, 5); // Top 5 personalized
+        // HANYA fetch personalized jika user SUDAH LOGIN
+        if (showPersonalized && user) {
+          const personalized = await getPersonalizedRecommendations(user.id, 5);
           setRecommendations(prev => ({ ...prev, personalized_recommendations: personalized }));
         }
       } catch (error) {
@@ -118,13 +99,18 @@ export default function RecommendationSection({
       }
     };
 
+    // Jangan fetch jika masih loading auth
+    if (authLoading) {
+      return;
+    }
+
     // Debounce to prevent multiple requests
     const timeoutId = setTimeout(() => {
       fetchRecommendations();
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [user?.id, productId, umkmId, userLocation, showPersonalized, showSimilarProducts, showSimilarUMKM, showTrending]);
+  }, [user, authLoading, productId, umkmId, showPersonalized, showSimilarProducts, showSimilarUMKM, showTrending]);
 
   if (isLoading) {
     return (
@@ -261,18 +247,78 @@ export default function RecommendationSection({
         </motion.div>
       )}
 
-      {/* Personalized Recommendations - 5 produk horizontal */}
-      {showPersonalized && user && (
-        <RecommendationBlock
-          title="🎯 Rekomendasi Untuk Anda"
-          icon={<Sparkles className="h-6 w-6" />}
-          items={recommendations.personalized_recommendations}
-          description="Berdasarkan pesanan dan preferensi Anda"
-          gradientFrom="from-purple-500"
-          gradientTo="to-pink-500"
-          layout="horizontal"
-          maxItems={5}
-        />
+      {/* Personalized Recommendations - Tampilkan login prompt jika belum login */}
+      {showPersonalized && (
+        <>
+          {!user && !authLoading ? (
+            // LOGIN PROMPT - Menarik user untuk login
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="relative overflow-hidden rounded-3xl bg-linear-to-br from-purple-500 via-pink-500 to-red-500 p-1"
+            >
+              <div className="bg-white dark:bg-neutral-900 rounded-3xl p-8 md:p-12">
+                <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
+
+                  {/* Content Section */}
+                  <div className="flex-1 text-center md:text-left">
+                    <h3 className="text-2xl md:text-3xl font-bold text-neutral-900 dark:text-white mb-3">
+                      Dapatkan Rekomendasi Personal Anda!
+                    </h3>
+                    <p className="text-neutral-600 dark:text-neutral-300 text-base md:text-lg mb-6 leading-relaxed">
+                      Login sekarang untuk mendapatkan <span className="font-bold text-purple-600 dark:text-purple-400">rekomendasi produk AI</span> yang disesuaikan dengan preferensi dan riwayat belanja Anda. 
+                      Temukan produk terbaik dari UMKM lokal yang Anda sukai!
+                    </p>
+                    
+                    {/* Benefits */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+                      <div className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
+                        <span className="text-green-500">✓</span>
+                        <span>Rekomendasi AI Personal</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
+                        <span className="text-green-500">✓</span>
+                        <span>Tracking Pesanan</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
+                        <span className="text-green-500">✓</span>
+                        <span>Produk Favorit</span>
+                      </div>
+                    </div>
+
+                    {/* CTA Buttons */}
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
+                      <a
+                        href="/auth/login"
+                        className="px-8 py-3 bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                      >
+                        Login Sekarang
+                      </a>
+                      <a
+                        href="/auth/register"
+                        className="px-8 py-3 bg-white dark:bg-neutral-800 text-purple-600 dark:text-purple-400 font-bold rounded-xl border-2 border-purple-600 dark:border-purple-400 hover:bg-purple-50 dark:hover:bg-neutral-700 transition-all duration-200"
+                      >
+                        Daftar Gratis
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ) : user ? (
+            // User sudah login - tampilkan rekomendasi
+            <RecommendationBlock
+              title="Rekomendasi Untuk Anda"
+              icon={<Sparkles className="h-6 w-6" />}
+              items={recommendations.personalized_recommendations}
+              description="Berdasarkan pesanan dan preferensi Anda"
+              gradientFrom="from-purple-500"
+              gradientTo="to-pink-500"
+              layout="horizontal"
+              maxItems={5}
+            />
+          ) : null}
+        </>
       )}
 
       {/* Similar Products - Grid layout biar keliatan rapi */}
@@ -292,14 +338,14 @@ export default function RecommendationSection({
       {/* Similar UMKM - Horizontal layout */}
       {showSimilarUMKM && umkmId && (
         <>
-          {console.log('🏪 Rendering UMKM Serupa:', { 
+          {console.log('Rendering UMKM Serupa:', { 
             showSimilarUMKM, 
             umkmId, 
             itemsCount: recommendations.similar_umkm.length,
             items: recommendations.similar_umkm 
           })}
           <RecommendationBlock
-            title="🏪 UMKM Serupa"
+            title="UMKM Serupa"
             icon={<Users className="h-6 w-6" />}
             items={recommendations.similar_umkm}
             description="UMKM lain di area dan kategori yang sama"
@@ -314,7 +360,7 @@ export default function RecommendationSection({
       {/* Trending Products - 5 produk horizontal */}
       {showTrending && (
         <RecommendationBlock
-          title="🔥 Trending Hari Ini"
+          title="Trending Hari Ini"
           icon={<TrendingUp className="h-6 w-6" />}
           items={recommendations.trending_products}
           description="Produk paling populer minggu ini"

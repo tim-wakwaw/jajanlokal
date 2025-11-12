@@ -1,7 +1,7 @@
 // src/contexts/OptimizedAuthContext.tsx
 'use client'
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 
@@ -39,14 +39,14 @@ export function OptimizedAuthProvider({ children }: { children: React.ReactNode 
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Cache untuk profile data
-  const [profileCache, setProfileCache] = useState<Map<string, UserProfile>>(new Map())
+  // Cache untuk profile data - GUNAKAN useRef SUPAYA TIDAK TRIGGER RE-RENDER
+  const profileCacheRef = useRef<Map<string, UserProfile>>(new Map())
 
     // Optimized profile fetch dengan caching
   const fetchUserProfile = useCallback(async (userId: string) => {
     // Check cache first
-    if (profileCache.has(userId)) {
-      setProfile(profileCache.get(userId)!)
+    if (profileCacheRef.current.has(userId)) {
+      setProfile(profileCacheRef.current.get(userId)!)
       return
     }
 
@@ -72,15 +72,15 @@ export function OptimizedAuthProvider({ children }: { children: React.ReactNode 
           metadata: data.metadata || {}
         }
         
-        // Cache the profile
-        setProfileCache(prev => new Map(prev.set(userId, userProfile)))
+        // Cache the profile - UPDATE REF, TIDAK TRIGGER RE-RENDER
+        profileCacheRef.current.set(userId, userProfile)
         setProfile(userProfile)
       }
     } catch (error) {
       console.error('Error fetching user profile:', error)
       setProfile(null)
     }
-  }, [profileCache])
+  }, []) // ✅ EMPTY DEPENDENCIES - fetchUserProfile tidak berubah!
 
   useEffect(() => {
     let mounted = true
@@ -122,7 +122,7 @@ export function OptimizedAuthProvider({ children }: { children: React.ReactNode 
           fetchUserProfile(session.user.id).catch(console.error)
         } else {
           setProfile(null)
-          setProfileCache(new Map()) // Clear cache on logout
+          profileCacheRef.current.clear() // Clear cache on logout
         }
         
         setLoading(false)
@@ -133,7 +133,8 @@ export function OptimizedAuthProvider({ children }: { children: React.ReactNode 
       mounted = false
       subscription.unsubscribe()
     }
-  }, [fetchUserProfile])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // ✅ EMPTY - hanya run sekali saat mount, fetchUserProfile stabil dengan useCallback([])
 
   // Helper functions
   const isAdmin = () => profile?.role === 'admin' || profile?.role === 'super_admin'
@@ -198,7 +199,7 @@ export function OptimizedAuthProvider({ children }: { children: React.ReactNode 
     if (error) throw error
     
     // Clear cache
-    setProfileCache(new Map())
+    profileCacheRef.current.clear()
   }
 
   const updateProfile = async (updates: Partial<UserProfile>) => {
@@ -214,7 +215,7 @@ export function OptimizedAuthProvider({ children }: { children: React.ReactNode 
     // Update cache and state
     if (profile) {
       const updatedProfile = { ...profile, ...updates }
-      setProfileCache(prev => new Map(prev.set(user.id, updatedProfile)))
+      profileCacheRef.current.set(user.id, updatedProfile)
       setProfile(updatedProfile)
     }
   }

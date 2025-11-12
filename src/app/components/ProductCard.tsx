@@ -2,7 +2,7 @@
 
 import { Star, MapPin, ShoppingCart, Heart } from "lucide-react";
 import { motion } from "motion/react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { showSuccessAlert, showErrorAlert } from "@/lib/sweetalert";
 
@@ -37,11 +37,6 @@ export default function ProductCard({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [adding, setAdding] = useState(false);
   const { addToCart } = useCart();
-
-  // Log setiap kali component di-render
-  useEffect(() => {
-    console.log('🔄 ProductCard rendered:', product.name, 'ID:', product.id);
-  }, [product.id, product.name]);
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
