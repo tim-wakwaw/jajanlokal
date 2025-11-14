@@ -87,18 +87,36 @@ export function OptimizedAuthProvider({ children }: { children: React.ReactNode 
 
     const getInitialSession = async () => {
       try {
-        // Quick session check without waiting
-        const { data: { session } } = await supabase.auth.getSession()
+        // RETRY MECHANISM for production reliability
+        let session = null
+        let attempts = 0
+        const maxAttempts = 3
+        
+        while (attempts < maxAttempts && !session) {
+          const { data } = await supabase.auth.getSession()
+          session = data.session
+          
+          if (!session && attempts < maxAttempts - 1) {
+            // Wait before retry
+            await new Promise(resolve => setTimeout(resolve, 100 * (attempts + 1)))
+          }
+          attempts++
+        }
+        
+        console.log('🔐 Session check result:', session ? 'FOUND' : 'NOT FOUND', `(${attempts} attempts)`)
         
         if (!mounted) return
 
         if (session?.user) {
+          console.log('🔐 Setting user from session:', session.user.email)
           setUser(session.user)
           // Non-blocking profile fetch
           fetchUserProfile(session.user.id).catch(console.error)
+        } else {
+          console.log('🔐 No session found, user remains null')
         }
       } catch (error) {
-        console.error('Error getting session:', error)
+        console.error('🔐 Error getting session:', error)
       } finally {
         if (mounted) {
           setLoading(false)
@@ -113,14 +131,16 @@ export function OptimizedAuthProvider({ children }: { children: React.ReactNode 
       async (event, session) => {
         if (!mounted) return
 
-        console.log('Auth state changed:', event)
+        console.log('🔐 Auth state changed:', event, session ? `User: ${session.user.email}` : 'No session')
         
         setUser(session?.user ?? null)
         
         if (session?.user) {
+          console.log('🔐 Fetching profile for user:', session.user.email)
           // Non-blocking profile fetch
           fetchUserProfile(session.user.id).catch(console.error)
         } else {
+          console.log('🔐 Clearing user data (logout/no session)')
           setProfile(null)
           profileCacheRef.current.clear() // Clear cache on logout
         }

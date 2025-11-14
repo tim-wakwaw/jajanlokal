@@ -11,7 +11,7 @@ import { SimilarProducts } from "../components/RecommendationSection";
 import { Trash2 } from "lucide-react";
 
 export default function CheckoutPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { cartItems, cartTotal, cartCount, refreshCart, removeFromCart } = useCart();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -24,17 +24,28 @@ export default function CheckoutPage() {
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
-    if (!user) {
-      router.push("/auth/login");
+    // WAIT for auth to finish loading before checking user
+    if (authLoading) {
+      console.log('🔐 Checkout - Auth still loading...');
       return;
     }
 
+    console.log('🔐 Checkout - Auth loaded, user:', user ? 'EXISTS' : 'NULL');
+
+    if (!user) {
+      console.log('🔐 Checkout - No user found, redirecting to login...');
+      router.push("/auth/login?redirect=/checkout");
+      return;
+    }
+
+    console.log('🔐 Checkout - User authenticated:', user.email);
+    
     // Pre-fill email from user
     setCustomerEmail(user.email || "");
     
     // Refresh cart to get latest data
     refreshCart();
-  }, [user, router, refreshCart]);
+  }, [user, authLoading, router, refreshCart]);
 
   // Log cart changes for debugging
   useEffect(() => {
@@ -125,12 +136,30 @@ export default function CheckoutPage() {
     }
   };
 
-  if (!user) {
+  // Show loading state while auth is loading
+  if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-900">
+        <div className="text-center">
+          <div className="animate-spin w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold mb-2 text-neutral-800 dark:text-neutral-200">
+            Memuat data autentikasi...
+          </h2>
+          <p className="text-neutral-600 dark:text-neutral-400">
+            Mohon tunggu sebentar
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login required if auth finished loading but no user
+  if (!authLoading && !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-900">
         <div className="text-center">
           <div className="text-6xl mb-4">🔐</div>
-          <h2 className="text-2xl font-bold mb-2">Login Required</h2>
+          <h2 className="text-2xl font-bold mb-2 text-neutral-800 dark:text-neutral-200">Login Required</h2>
           <p className="text-neutral-600 dark:text-neutral-400">
             Silakan login untuk melanjutkan checkout
           </p>

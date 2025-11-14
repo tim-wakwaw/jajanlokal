@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Plus, Minus, ShoppingBag, Trash2, ArrowRight } from 'lucide-react'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import { useCart } from '@/contexts/CartContext'
 import { useAuth } from '@/contexts/OptimizedAuthContext'
 import { formatPrice } from '@/lib/utils'
@@ -18,6 +19,7 @@ interface CartSidebarProps {
 export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const { cartItems, updateQuantity, removeFromCart, cartTotal, cartCount } = useCart()
   const { user, loading: authLoading } = useAuth()
+  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
   // Close on outside click
@@ -79,9 +81,9 @@ export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
     // Save cart to localStorage for checkout page
     localStorage.setItem(`cart_${user.id}`, JSON.stringify(cartItems))
     
-    // Close sidebar and redirect to checkout
+    // Close sidebar and redirect to checkout with proper router navigation
     onClose()
-    window.location.href = '/checkout'
+    router.push('/checkout')
   }
 
   return (
