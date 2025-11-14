@@ -3,8 +3,19 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-// Client-side usage
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Client-side usage with improved session persistence
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    // Ensure session is persisted across page reloads and navigations
+    persistSession: true,
+    // Use localStorage for session storage (more reliable than default)
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    // Auto refresh tokens before expiry
+    autoRefreshToken: true,
+    // Detect session in URL and storage
+    detectSessionInUrl: true
+  }
+})
 
 // Database types untuk TypeScript
 export interface Database {
