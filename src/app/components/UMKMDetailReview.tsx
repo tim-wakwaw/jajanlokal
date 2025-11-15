@@ -7,7 +7,7 @@ interface Props {
 }
 
 const getAvatar = (username: string) =>
-  `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=random`;
+  `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(username)}`;
 
 const UMKMDetailReview: React.FC<Props> = ({ umkm }) => {
   return (
@@ -23,7 +23,7 @@ const UMKMDetailReview: React.FC<Props> = ({ umkm }) => {
               alt={comment.user}
               width={32}
               height={32}
-              className="w-8 h-8 rounded-full bg-muted border"
+              className="w-8 h-8 rounded-full bg-muted border border-primary"
             />
             <div className="flex-1">
               <strong className="text-sm font-medium text-foreground">{comment.user}</strong>

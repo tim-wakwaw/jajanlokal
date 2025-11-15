@@ -201,6 +201,19 @@ export default function PetaUMKM() {
       setIsLoadingData(true);
 
       try {
+        // Fetch comments from umkmData.json
+        const umkmDataResponse = await fetch('/data/umkmData.json');
+        const umkmDataJSON = await umkmDataResponse.json();
+        const commentsMap: { [key: string]: Comment[] } = {};
+        
+        umkmDataJSON.forEach((item: UMKM) => {
+          if (item.name && item.comments) {
+            commentsMap[item.name.toLowerCase().trim()] = item.comments;
+          }
+        });
+
+        console.log('Comments Map:', commentsMap);
+
         const { data, error } = await supabase
           .from('umkm')
           .select('*')
@@ -213,19 +226,23 @@ export default function PetaUMKM() {
         }
 
         // Transform Supabase data to match UMKM interface
-        const transformedData = data?.map(umkm => ({
-          id: umkm.id,
-          name: umkm.name,
-          image: umkm.image,
-          alamat: umkm.alamat,
-          category: umkm.category,
-          lat: parseFloat(umkm.lat || 0),
-          lng: parseFloat(umkm.lng || 0),
-          description: umkm.description,
-          rating: parseFloat(umkm.rating || 4.5),
-          comments: [], // Empty for now, can be populated from a separate table
-          products: [] // Will be loaded separately when UMKM is selected
-        })) || [];
+        const transformedData = data?.map(umkm => {
+          const umkmComments = commentsMap[umkm.name.toLowerCase().trim()] || [];
+          console.log(`🏪 UMKM: ${umkm.name}, Comments: ${umkmComments.length}`);
+          return {
+            id: umkm.id,
+            name: umkm.name,
+            image: umkm.image,
+            alamat: umkm.alamat,
+            category: umkm.category,
+            lat: parseFloat(umkm.lat || 0),
+            lng: parseFloat(umkm.lng || 0),
+            description: umkm.description,
+            rating: parseFloat(umkm.rating || 4.5),
+            comments: umkmComments, // Load comments from umkmData.json by matching name
+            products: [] // Will be loaded separately when UMKM is selected
+          };
+        }) || [];
 
         setUmkmList(transformedData);
         setIsLoadingData(false);
