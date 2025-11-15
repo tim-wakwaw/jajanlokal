@@ -23,7 +23,8 @@ const UMKMDetailReview: React.FC<Props> = ({ umkm }) => {
               alt={comment.user}
               width={32}
               height={32}
-              className="w-8 h-8 rounded-full bg-muted border border-primary"
+              unoptimized
+              className="w-8 h-8 rounded-full bg-muted border border-primary shrink-0"
             />
             <div className="flex-1">
               <strong className="text-sm font-medium text-foreground">{comment.user}</strong>
