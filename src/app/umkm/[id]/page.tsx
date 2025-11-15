@@ -89,7 +89,12 @@ export default function UMKMDetailPage() {
     alamat: umkmDetail.address || umkmDetail.alamat || '',
     comments: umkmDetail.comments || [],
     image: umkmDetail.image_url || umkmDetail.image,
-    products: umkmDetail.products || []
+    products: (umkmDetail.products || []).map(product => ({
+      ...product,
+      stock: product.stock ?? 0,  // Provide default value for undefined stock
+      is_available: product.is_available ?? true,  // Provide default value
+      image: product.image_url  // Only use image_url since product.image doesn't exist
+    }))
   });
 
   if (loading) {
