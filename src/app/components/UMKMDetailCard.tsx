@@ -114,7 +114,7 @@ const SimpleUMKMList = ({ umkmId }: { umkmId: string }) => {
   );
 };
 
-export interface Product { name: string; price: number; image?: string; }
+export interface Product { id: string; name: string; price: number; image?: string; stock: number; is_available: boolean; }
 export interface Comment { user: string; text: string;}
 
 export interface UMKM {
@@ -270,7 +270,6 @@ export const UMKMDetailCard: React.FC<UMKMDetailCardProps> = ({ umkm, onClose, c
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.2 }}
                     
-                    // 4. HAPUS 'max-h-[40vh]', 'overflow-y-auto', dll.
                     className="" 
                   >
                                         {activeTab === 'overview' && <UMKMDetailOverview umkm={umkm} />}

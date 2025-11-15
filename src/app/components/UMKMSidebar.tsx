@@ -6,7 +6,12 @@ import LazyImage from "./LazyImage";
 import { cn } from "@/lib/utils";
 
 // Tipe Data UMKM
-interface Product { name: string; price: number;}
+interface Product { id: string; 
+  name: string; 
+  price: number; 
+  image?: string; 
+  stock: number; 
+  is_available: boolean; }
 interface Comment { user: string; text: string;}
 interface UMKM { id: number; name: string; image?: string; alamat: string; category: string; lat: number; lng: number; description: string; rating: number; comments: Comment[]; products: Product[]; }
 

@@ -19,16 +19,16 @@ import ReactDOMServer from 'react-dom/server';
 import MapPopupCard from '../components/MapPopupCard';
 import { supabase } from '@/lib/supabase';
 
-// --- Tipe Data ---
+// --- Tipe Data --
 
-/**
- * @typedef {object} Product
- * @property {string} name - Nama produk.
- * @property {number} price - Harga produk.
- * @property {string} [image] - URL gambar produk.
- */
-
-interface Product { name: string; price: number; image?: string; }
+interface Product { 
+  id: string; 
+  name: string; 
+  price: number; 
+  image?: string; 
+  stock: number; 
+  is_available: boolean; 
+}
 
 /**
  * @typedef {object} Comment
@@ -280,7 +280,7 @@ export default function PetaUMKM() {
       try {
         const { data, error } = await supabase
           .from('products')
-          .select('name, price, image')
+          .select('id, name, price, image, stock, is_available')
           .eq('umkm_id', umkmId)
           .eq('is_available', true);
 
@@ -296,7 +296,10 @@ export default function PetaUMKM() {
             products: data.map(p => ({
               name: p.name,
               price: p.price,
-              image: p.image
+              image: p.image,
+              id: p.id,
+              stock: p.stock,
+              is_available: p.is_available
             }))
           } : prev);
         }
