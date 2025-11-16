@@ -425,6 +425,12 @@ export default function PetaUMKM() {
       alert("Geolocation tidak didukung atau map belum siap.");
       return;
     };
+    const staticLat = -7.952370923722959;
+    const staticLng = 112.61344793731725;
+    const staticLocation = L.latLng(staticLat, staticLng);
+    const radius = 1500; 
+    const zoomLevel = 17; 
+
 
     if (userLocationMarkerRef.current && currentMap.hasLayer(userLocationMarkerRef.current)) {
       currentMap.removeLayer(userLocationMarkerRef.current);
@@ -434,25 +440,33 @@ export default function PetaUMKM() {
       currentMap.removeLayer(userLocationCircleRef.current);
       userLocationCircleRef.current = null;
     }
+    const showStaticLocation = () => {
 
-    console.log("Mencari lokasi pengguna...");
-    currentMap.locate({ setView: true, maxZoom: 17 });
-
-    currentMap.once('locationfound', (e) => {
-      console.log("Lokasi ditemukan:", e.latlng);
-      const radius = 1500;
       if (userIconRef.current) {
-        userLocationMarkerRef.current = L.marker(e.latlng, { icon: userIconRef.current })
+        userLocationMarkerRef.current = L.marker(staticLocation, { icon: userIconRef.current })
           .addTo(currentMap)
-          .bindPopup(`Lokasimu`).openPopup();
+          .bindPopup(`Posisi Anda`).openPopup();
       }
-      userLocationCircleRef.current = L.circle(e.latlng, radius).addTo(currentMap);
-    });
-
-    currentMap.once('locationerror', (e) => {
-      console.debug("Location not available:", e.message);
-      // Don't show alert for location errors - it's optional
-    });
+      userLocationCircleRef.current = L.circle(staticLocation, radius).addTo(currentMap);
+      
+      currentMap.setView(staticLocation, zoomLevel);
+    };
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        showStaticLocation();
+      },
+      (error) => {
+        console.warn("Izin lokasi ditolak atau error:", error.message);
+        if (error.code === error.PERMISSION_DENIED) {
+          alert("Anda telah menolak izin lokasi. Marker tidak dapat ditampilkan.");
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 5000, 
+        maximumAge: 0,
+      }
+    );
   };
 
   /** Daftar item konfigurasi untuk komponen FloatingDock. */
