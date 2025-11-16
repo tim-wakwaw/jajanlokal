@@ -261,7 +261,7 @@ export default function ProductCard({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-2 mt-auto">
+          <div className="flex flex-col sm:flex-row gap-2 mt-auto">
             <button
               type="button"
               onClick={handleAddToCart}

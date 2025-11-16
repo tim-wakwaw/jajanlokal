@@ -56,7 +56,7 @@ export default function HeroSection() {
             initial="hidden"
             animate="visible"
             transition={{ delay: 0.2 }}
-            className="relative z-20 w-full flex flex-col items-start text-left"
+            className="relative z-20 w-full flex flex-col items-center text-center lg:items-start lg:text-left"
           >
             <SplitText
               text="Temukan Kekayaan Lokal"
@@ -77,7 +77,7 @@ export default function HeroSection() {
               speed={4}
             />
 
-            <div className="mt-10 flex flex-col sm:flex-row items-center justify-start gap-4">
+            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
               <Link
                 href="/produk"
                 className="flex items-center gap-2 rounded-lg bg-gray-700 px-6 py-3 text-base font-semibold text-white shadow-lg transition-all hover:bg-gray-700 hover:shadow-xl transform hover:-translate-y-0.5 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200"

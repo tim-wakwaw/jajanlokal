@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { motion, useMotionValue, useTransform, useSpring, type MotionValue, animate, type AnimationPlaybackControls, useInView } from 'framer-motion';
 import { MapPin, ShoppingCart, Store, MessageSquare, ShieldCheck, Heart } from 'lucide-react';
 import { LottieAnimation } from './LottieAnimation'; 
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 const MotionLink = motion(Link);
 
@@ -98,7 +99,7 @@ export const RotatingFeatureIcons = () => {
         }}
       />
 
-      <div className="relative w-full max-w-sm pointer-events-none lg:-translate-x-2">
+      <div className="relative w-full max-w-[240px] sm:max-w-xs pointer-events-none lg:max-w-sm lg:-translate-x-2">
         <LottieAnimation
           src={lottieUrl}
           className="w-full h-auto"
@@ -128,7 +129,8 @@ const FeatureIcon = ({
   containerRotate: MotionValue<number>
 }) => {
   
-  const radius = "300px";
+  const isLg = useMediaQuery("(min-width: 1024px)"); 
+  const radius = isLg ? "280px" : "130px";
   
   const iconTransform = useTransform(
     containerRotate,
@@ -140,7 +142,7 @@ const FeatureIcon = ({
   return (
     <MotionLink
       href={feature.href}
-      className="absolute top-1/2 left-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-gray-600 p-3 shadow-lg backdrop-blur-md border border-gray-200/50 dark:bg-white/80 dark:border-transparent"
+      className="absolute top-1/2 left-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-gray-600 p-2 shadow-lg backdrop-blur-md border border-gray-200/50 dark:bg-white/80 dark:border-transparent lg:h-16 lg:w-16 lg:p-3"
       style={{
         transform: iconTransform,
       }}
