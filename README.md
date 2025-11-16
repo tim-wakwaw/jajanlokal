@@ -101,9 +101,9 @@ Platform e-commerce modern untuk menemukan dan berbisnis dengan UMKM makanan dan
 - **Realtime Subscriptions** - Real-time data sync
 
 ### Payment Integration
-- **Midtrans** - Payment gateway Indonesia
+- **xendit** - Payment gateway Indonesia
 - **Xendit** - Alternative payment provider
-- **Midtrans Client** - SDK untuk integrasi
+- **xendit Client** - SDK untuk integrasi
 
 ### Media & Storage
 - **Cloudinary** - Image hosting & optimization
@@ -256,7 +256,7 @@ jajanlokal/
 - Git
 - Akun Supabase
 - Akun Cloudinary (optional untuk image hosting)
-- Akun Midtrans/Xendit (untuk payment)
+- Akun xendit/Xendit (untuk payment)
 
 ### 1. Clone Repository
 
@@ -287,9 +287,9 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 # Cloudinary Configuration (for image uploads)
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
 
-# Midtrans Configuration
-NEXT_PUBLIC_MIDTRANS_CLIENT_KEY=Mid-client-xxxxxxxxxxxxx
-MIDTRANS_SERVER_KEY=Mid-server-xxxxxxxxxxxxx
+# xendit Configuration
+NEXT_PUBLIC_xendit_CLIENT_KEY=Mid-client-xxxxxxxxxxxxx
+xendit_SERVER_KEY=Mid-server-xxxxxxxxxxxxx
 
 # Xendit Configuration (optional)
 NEXT_PUBLIC_XENDIT_API_KEY=xnd_public_xxxxxxxxxxxxx
@@ -363,23 +363,43 @@ npm start
    - Configure image optimization & transformation
    - Setup resource limits
 
-### Midtrans Setup
+### Xendit Setup
 
-1. **Daftar di Midtrans**
-   - Login ke [midtrans.com](https://midtrans.com)
-   - Setup akun dan verify
-   - Get Client Key dan Server Key dari Settings
-   - Setup merchant di sandbox environment
+1. **Daftar di Xendit**
+   - Login ke [xendit.co](https://xendit.co)
+   - Setup akun dan verify bisnis Anda
+   - Get API Key dari Settings > Developers
+   - Ambil Secret Key untuk server-side integration
+   - Setup merchant di sandbox environment terlebih dahulu
 
-2. **Konfigurasi Callback**
-   - Setup notification URL di Midtrans dashboard
+2. **Konfigurasi Callback/Webhook**
+   - Setup webhook URL di Xendit dashboard (Settings > Webhooks)
    - URL: `https://yourdomain.com/api/payment/notification`
-   - Enable HTTP POST notifications
+   - Subscribe ke event: `invoice.paid`, `invoice.expired`
+   - Enable webhook untuk testing di sandbox
+   - Verify webhook secret untuk security
 
 3. **Testing Payment**
-   - Gunakan kartu kredit test: `4811 1111 1111 1114`
-   - CVV: `123`
-   - Expiry: `12/25`
+   - Gunakan **Virtual Account** untuk testing:
+     - Bank: BCA, BNI, Mandiri, Permata, CIMB
+     - Automatic virtual account generation
+   - Atau gunakan **E-Wallet** simulator (OVO, Dana, LinkAja)
+   - Atau gunakan **Kartu Kredit Test**:
+     - Card Number: `4900 0000 0000 0005`
+     - CVV: `123`
+     - Expiry: `12/25` (any future date)
+     - OTP: `123456`
+   - Sandbox mode tidak memerlukan dana aktual
+
+4. **Integrasi di Code**
+   - Setup Xendit client di `src/lib/xendit.ts`
+   - Configure di `.env.local`:
+     ```env
+     NEXT_PUBLIC_XENDIT_API_KEY=xnd_public_xxxxxxxxxxxxx
+     XENDIT_SECRET_KEY=xnd_xxx_xxxxxxxxxxxxx
+     ```
+   - Implement invoice creation & payment handling
+   - Setup webhook listener untuk payment confirmations
 
 ## Database Setup
 
@@ -486,7 +506,7 @@ Berikut adalah dokumentasi lengkap semua table di Supabase:
 | user_id | UUID | FK(profiles) | Customer user ID |
 | total | NUMERIC | NOT NULL | Total order amount |
 | status | ENUM | DEFAULT 'pending' | Status: pending, paid, shipped, delivered, cancelled |
-| payment_method | TEXT | - | Payment method: midtrans, xendit, transfer |
+| payment_method | TEXT | - | Payment method: xendit, xendit, transfer |
 | payment_id | TEXT | - | Payment provider transaction ID |
 | shipping_address | TEXT | - | Full shipping address |
 | notes | TEXT | - | Special notes/instructions |
@@ -680,7 +700,7 @@ CREATE INDEX idx_umkm_owner ON umkm(owner_id);
 3. **Add to Cart**: Klik "Add to Cart" button
 4. **Cart**: Buka cart sidebar untuk review
 5. **Checkout**: Klik checkout dari cart sidebar
-6. **Payment**: Pilih metode pembayaran (Midtrans/Xendit)
+6. **Payment**: Pilih metode pembayaran (Xendit)
 7. **Confirm**: Ikuti instruksi pembayaran
 8. **Track Order**: Kunjungi `/orders` untuk track pesanan
 
@@ -744,7 +764,7 @@ DELETE /api/cart/[item_id]       # Remove from cart
 ### Checkout & Payment API
 ```
 POST   /api/checkout              # Create order
-POST   /api/payment/midtrans       # Process Midtrans payment
+POST   /api/payment/xendit       # Process xendit payment
 POST   /api/payment/xendit         # Process Xendit payment
 POST   /api/payment/notification   # Payment webhook
 ```
@@ -777,7 +797,7 @@ git push origin main
 3. **Post-Deployment**
    - Update Supabase redirect URLs:
      - `https://yourdomain.vercel.app/auth/callback`
-   - Update Midtrans notification URL:
+   - Update xendit notification URL:
      - `https://yourdomain.vercel.app/api/payment/notification`
    - Setup custom domain di Vercel
    - Enable auto-deployment dari main branch
@@ -789,8 +809,8 @@ git push origin main
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_production_anon_key
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
-NEXT_PUBLIC_MIDTRANS_CLIENT_KEY=your_production_client_key
-MIDTRANS_SERVER_KEY=your_production_server_key
+NEXT_PUBLIC_xendit_CLIENT_KEY=your_production_client_key
+xendit_SERVER_KEY=your_production_server_key
 NEXT_PUBLIC_APP_URL=https://yourdomain.com
 NODE_ENV=production
 ```
@@ -848,7 +868,7 @@ npm run dev
 
 ### Payment Integration Issues
 
-- Verifikasi Midtrans/Xendit API keys di `.env.local`
+- Verifikasi Xendit API keys di `.env.local`
 - Periksa notification URL di payment dashboard
 - Test dengan payment credentials sandbox
 - Check browser console untuk error messages
